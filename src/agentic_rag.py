@@ -22,6 +22,11 @@ from src.guardrails import EmergencyGuardrailMiddleware, SafetyCheckGuardrail, E
 from config import settings
 from src import prompts
 
+try:
+    from src.sql_tools import get_sql_tools
+except ImportError:
+    get_sql_tools = None
+
 import json
 from langchain_core.tools import render_text_description
 
@@ -157,16 +162,25 @@ def create_agentic_rag_graph(
     # https://docs.langchain.com/oss/python/langgraph/agentic-rag
     # https://docs.langchain.com/oss/python/langgraph/sql-agent
     if tools is None:
-        # Add SQL tools FIRST (higher priority/preference)
-        from src.sql_tools import get_sql_tools
-        sql_tools = get_sql_tools()
+        sql_tools = []
+        if get_sql_tools is not None:
+            try:
+                sql_tools = get_sql_tools()
+            except Exception as exc:
+                logger.warning(f"SQL document tools unavailable: {exc}")
 
-        # Create vector search tools (lower priority, fallback)
         kb_tools = get_knowledge_base_tools(vector_store, retriever=None)
-
-        # Combine: SQL tools first (preferred), then vector search (fallback)
         tools = sql_tools + kb_tools
-        logger.info(f"Initialized {len(sql_tools)} SQL tools (PREFERRED) + {len(kb_tools)} vector search tools (fallback) = {len(tools)} total tools")
+        if sql_tools:
+            logger.info(
+                f"Initialized {len(sql_tools)} SQL tools + {len(kb_tools)} "
+                f"vector search tools = {len(tools)} total"
+            )
+        else:
+            logger.info(
+                f"SQL tools skipped (not in this deploy). "
+                f"Using {len(kb_tools)} vector search tools"
+            )
 
     # Convert tools to retriever tool format if needed
     retriever_tool = tools[0] if tools else None

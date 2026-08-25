@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     openrouter_chat_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_metadata_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_embedding_model: str = "nvidia/nemotron-3-embed-1b:free"
-    collection_name: str = "pedir_knowledge_base"
+    collection_name: str = "pedir_demo_nemotron_embed"
 
     # Hugging Face Inference Endpoint Configuration
     hf_api_key: str = ""
@@ -67,13 +67,13 @@ class Settings(BaseSettings):
     agent_temperature: float = 0.1
 
     # LangSmith Configuration
-    langsmith_tracing: bool = True
+    langsmith_tracing: bool = False
     langsmith_endpoint: str = "https://api.smith.langchain.com"
     langsmith_api_key: str = ""
     langsmith_project: str = "pedir-bot"
 
     # LangChain Reranker Configuration
-    use_reranker: bool = True
+    use_reranker: bool = False
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # Default reranker model
     reranker_top_k: int = 10  # Number of documents to rerank (before selecting top_k_reranker)
 
@@ -89,12 +89,12 @@ class Settings(BaseSettings):
     # Embedding Model Options
     embedding_provider: Literal[
         "openai", "openrouter", "sentence-transformer", "ollama", "lmstudio"
-    ] = "ollama"
+    ] = "openrouter"
     sentence_transformer_model: str = "jinaai/jina-embeddings-v2-base-en"
     ollama_embedding_model: str = "qwen3-embedding:latest"
 
     # LLM Provider
-    llm_provider: Literal["openai", "ollama", "lmstudio", "openrouter", "huggingface"] = "ollama"
+    llm_provider: Literal["openai", "ollama", "lmstudio", "openrouter", "huggingface"] = "openrouter"
 
 
 
