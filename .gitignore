@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.venv/
+venv/
+ENV/
+
+# Secrets and local runtime
+.env
+.env.local
+.streamlit/secrets.toml
+.demo_usage.json
+
+# Indexes built on first Cloud / local run
+chroma_db/
+*.db
+*.sqlite
+
+# Never publish crawled or hospital corpora
+KB/
+evaluations/
+evaluations_results*
+
+# Logs / OS
+*.log
+logs/
+.DS_Store
+Thumbs.db
+.cursor/

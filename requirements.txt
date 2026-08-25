@@ -1,0 +1,25 @@
+# Streamlit Community Cloud install file (~1 GB RAM).
+# No torch, transformers, sentence-transformers, Ollama, or OCR.
+# Full local stack: pip install -r requirements-full.txt
+
+python-dotenv==1.0.0
+pydantic>=2.7.4
+pydantic-settings>=2.1.0
+langchain>=1.0.0
+langchain-core>=1.0.0
+langchain-community>=0.3.0
+langchain-chroma>=0.2.0
+langchain-openai>=0.2.0
+langgraph>=1.0.0
+openai>=1.40.0
+chromadb>=0.5.0
+rank-bm25==0.2.2
+numpy>=1.26.0
+requests>=2.31.0
+urllib3>=2.1.0
+markdown==3.5.2
+beautifulsoup4==4.12.3
+lxml==5.1.0
+loguru>=0.7.2
+tenacity>=8.2.3
+streamlit>=1.30.0
