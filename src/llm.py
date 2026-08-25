@@ -50,7 +50,6 @@ def get_langchain_llm(provider: str = None, **kwargs) -> BaseChatModel:
         base_url = kwargs.get('base_url', settings.ollama_api_base)
         # Set Ollama host if needed
         if base_url and base_url != "http://localhost:11434":
-            import os
             os.environ['OLLAMA_HOST'] = base_url.replace('http://', '').replace('https://', '')
 
         return ChatOllama(

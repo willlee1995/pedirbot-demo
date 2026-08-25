@@ -247,7 +247,6 @@ class OllamaEmbeddings(EmbeddingModel):
 
         # Set the Ollama host (for fallback/other tools if needed)
         if self.base_url:
-            import os
             os.environ['OLLAMA_HOST'] = self.base_url
 
         # Check API and get dimension
