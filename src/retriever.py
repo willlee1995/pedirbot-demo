@@ -241,9 +241,23 @@ class AdvancedRetriever:
 
             document_contents = "Information about pediatric interventional radiology procedures, including procedures, care instructions, complications, and patient education materials."
 
-            if SelfQueryRetriever is None or AttributeInfo is None:
-                logger.debug("SelfQueryRetriever or AttributeInfo not available. Using base retriever (LangChain 1.0 pattern).")
-                self.retriever = base_retriever if base_retriever is not None else vector_store.vectorstore.as_retriever()
+            if (
+                settings.llm_provider == "openrouter"
+                or SelfQueryRetriever is None
+                or AttributeInfo is None
+            ):
+                if settings.llm_provider == "openrouter":
+                    logger.info("OpenRouter demo: using base retriever (no SelfQuery)")
+                else:
+                    logger.debug(
+                        "SelfQueryRetriever or AttributeInfo not available. "
+                        "Using base retriever (LangChain 1.0 pattern)."
+                    )
+                self.retriever = (
+                    base_retriever
+                    if base_retriever is not None
+                    else vector_store.vectorstore.as_retriever()
+                )
             else:
                 try:
                     # Optional: Use ChromaTranslator if necessary
@@ -335,9 +349,15 @@ class AdvancedRetriever:
                     self._self_query_retriever = self_query_retriever
 
                 except Exception as e:
-                    logger.warning(f"Failed to initialize SelfQueryRetriever: {e}. Using base retriever.")
-                    logger.exception(e)
-                    self.retriever = base_retriever if base_retriever is not None else vector_store.vectorstore.as_retriever()
+                    logger.warning(
+                        f"Failed to initialize SelfQueryRetriever: {e}. "
+                        "Using base retriever."
+                    )
+                    self.retriever = (
+                        base_retriever
+                        if base_retriever is not None
+                        else vector_store.vectorstore.as_retriever()
+                    )
         else:
             logger.info("No LLM provided, using base retriever without SelfQuery")
             self.retriever = base_retriever if base_retriever is not None else vector_store.vectorstore.as_retriever()

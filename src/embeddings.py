@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import os
 
 import numpy as np
-from openai import AuthenticationError, BadRequestError, OpenAI
+from openai import AuthenticationError, BadRequestError, OpenAI, RateLimitError
 from loguru import logger
 from tenacity import (
     retry,
@@ -90,8 +90,8 @@ class OpenAIEmbeddings(EmbeddingModel):
         return "nemotron" in name and "embed" in name
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=2, min=5, max=30),
         retry=retry_if_exception(
             lambda exc: not isinstance(
                 exc, (BadRequestError, AuthenticationError, ValueError)
@@ -142,6 +142,9 @@ class OpenAIEmbeddings(EmbeddingModel):
             raise ValueError(
                 f"Embedding request rejected by {self.model}: {detail}"
             ) from e
+        except RateLimitError as e:
+            logger.warning(f"Embedding rate-limited, will retry: {e}")
+            raise
         except Exception as e:
             logger.error(f"Error generating embeddings: {e}")
             raise
