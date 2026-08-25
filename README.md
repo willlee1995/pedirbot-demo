@@ -103,7 +103,7 @@ Streamlit Community Cloud reads a **public** GitHub repository. This repo is tha
 
 1. Open [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
 2. **New app** → `willlee1995/pedirbot-demo` → branch `main` → main file `streamlit_app.py`.
-3. Advanced settings: Python **3.11** (`runtime.txt`).
+3. Advanced settings: Python **3.11** or **3.12**. Community Cloud ignores `runtime.txt` and currently defaults to 3.14, which breaks some wheels.
 4. **App menu → Settings → Secrets.** Paste from [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example).
 
 Required secrets:
@@ -149,7 +149,7 @@ pedirbot-demo/
 │   └── openrouter_demo_models.py
 ├── demo_kb/                  # Original educational leaflets only
 ├── requirements.txt          # Streamlit Cloud
-├── runtime.txt               # Python 3.11
+├── runtime.txt               # Hint only — set Python in Streamlit Advanced settings
 └── .streamlit/secrets.toml.example
 ```
 

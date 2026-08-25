@@ -19,7 +19,6 @@ requests>=2.31.0
 urllib3>=2.1.0
 markdown==3.5.2
 beautifulsoup4==4.12.3
-lxml==5.1.0
 loguru>=0.7.2
 tenacity>=8.2.3
 streamlit>=1.30.0
