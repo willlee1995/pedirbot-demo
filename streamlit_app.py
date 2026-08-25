@@ -423,12 +423,11 @@ def render_sidebar(stats, chat_model: str):
         
         st.divider()
         
-        # Disclaimer
-        st.caption("""
-        ⚠️ **Disclaimer**: This chatbot provides educational information only. 
-        It is not a substitute for professional medical advice. 
-        Always consult your doctor or nurse for medical questions.
-        """)
+        st.caption(
+            "CIRSE 2026 — *Beyond Information Leaflets: Development of an "
+            "Interactive AI Chatbot for Patient and Carer Education in "
+            "Paediatric Interventional Radiology* — demonstration only."
+        )
 
 
 def render_message(message):
