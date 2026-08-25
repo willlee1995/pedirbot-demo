@@ -69,7 +69,9 @@ Overall differences: Wilcoxon signed-rank, *p* < .001. English relevance and com
 
 ## Try the live demo
 
-**App:** [https://pedirbot-demo.streamlit.app](https://pedirbot-demo.streamlit.app)
+**App (after you connect Streamlit Cloud once):** [https://pedirbot-demo.streamlit.app](https://pedirbot-demo.streamlit.app)
+
+[Deploy this repo](https://share.streamlit.io/deploy?repository=willlee1995/pedirbot-demo&branch=main&mainModule=streamlit_app.py) while signed in to Streamlit with GitHub, then paste secrets from [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example). Name the app `pedirbot-demo` so the public URL matches the badge above.
 
 Example questions the public leaflets can support:
 
