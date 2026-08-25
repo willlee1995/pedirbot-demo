@@ -480,20 +480,24 @@ def process_query(rag_pipeline, prompt, progress_tracker):
 
 
 def gate_demo_access() -> bool:
-    """Ask for the optional demo PIN before any API work starts."""
+    """Ask for the demo passphrase before any API work starts."""
     code = demo_access_code()
     if not code or not is_cloud_demo():
         return True
     if st.session_state.demo_unlocked:
         return True
 
-    st.info("This demo is PIN-locked so casual visitors cannot spend API credit.")
-    entered = st.text_input("Demo access code", type="password")
-    if st.button("Unlock demo", type="primary"):
+    render_header()
+    st.info(
+        "This demo is passphrase-locked so casual visitors cannot spend API credit. "
+        "Ask the presenter for the phrase."
+    )
+    entered = st.text_input("Passphrase", type="password")
+    if st.button("Enter demo", type="primary"):
         if entered == code:
             st.session_state.demo_unlocked = True
             st.rerun()
-        st.error("That code does not match.")
+        st.error("That passphrase does not match.")
     return False
 
 

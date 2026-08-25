@@ -78,6 +78,9 @@ class Settings(BaseSettings):
 
     # Application Settings
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+    # Streamlit Cloud passphrase. Empty locally; Cloud default is set in cloud_bootstrap.
+    # Set DEMO_ACCESS_CODE=off in Secrets to disable the lock screen.
+    demo_access_code: str = ""
     max_chunk_size: int = 1500  # Larger chunks for better context preservation
     chunk_overlap: int = 200  # More overlap to prevent context fragmentation
     min_relevance_score: float = 0.1  # Minimum similarity score for retrieval

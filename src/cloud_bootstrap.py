@@ -23,6 +23,7 @@ CLOUD_DEFAULTS = {
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
     "OPENAI_CHAT_MODEL": "gpt-4o-mini",
     "OPENROUTER_CHAT_MODEL": "nvidia/nemotron-3.5-lightning:free",
+    "DEMO_ACCESS_CODE": "cirse2026",
 }
 
 DEMO_SOURCE_DIRS = (
@@ -136,8 +137,11 @@ def _int_env(name: str, default: int) -> int:
 
 
 def demo_access_code() -> str:
-    """Optional shared PIN from Secrets. Empty means the demo is public."""
-    return os.environ.get("DEMO_ACCESS_CODE", "").strip()
+    """Shared passphrase from Secrets. Empty or 'off' means the demo is public."""
+    raw = os.environ.get("DEMO_ACCESS_CODE", "").strip()
+    if raw.lower() in {"off", "none", "public"}:
+        return ""
+    return raw
 
 
 def demo_quota_limits() -> dict:

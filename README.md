@@ -82,6 +82,8 @@ Example questions the public leaflets can support:
 
 The sidebar lets you switch among **open-weight** chat models served on OpenRouter’s free endpoints (default: NVIDIA Nemotron 3.5 Lightning). That is a stand-in for a hospital GPU box — Streamlit Cloud cannot host Ollama. Embeddings still use a hosted API. Each tester is capped (5 questions per session, 40 per day) so a public congress URL does not exhaust credit.
 
+The first screen asks for a **passphrase** (shared by the presenter). That keeps casual visitors from spending embedding credit. Change it with `DEMO_ACCESS_CODE` in Streamlit secrets, or set that secret to `off` to disable the lock.
+
 If the app is asleep, the first visit can take a minute while Streamlit wakes the instance and builds a small in-memory index from `demo_kb/`.
 
 ---
@@ -109,7 +111,7 @@ Required secrets:
 - `OPENAI_API_KEY` — embeddings (`text-embedding-3-small`)
 - `OPENROUTER_API_KEY` — free open-weight chat
 
-Optional: `DEMO_ACCESS_CODE` (PIN for a closed CIRSE walkthrough), plus the three quota keys already in the example file.
+Also set `DEMO_ACCESS_CODE` (the tester passphrase) and the three quota keys already in the example file. Use `off` if you want the app open.
 
 One-click deploy (you still add secrets after the app is created):
 
