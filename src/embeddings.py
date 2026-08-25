@@ -38,22 +38,32 @@ class EmbeddingModel(ABC):
 class OpenAIEmbeddings(EmbeddingModel):
     """OpenAI embedding model implementation."""
 
-    def __init__(self, model: str = None, api_key: str = None, base_url: str = None):
+    def __init__(
+        self,
+        model: str = None,
+        api_key: str = None,
+        base_url: str = None,
+        default_headers: dict = None,
+    ):
         """
-        Initialize OpenAI embeddings.
+        Initialize OpenAI-compatible embeddings.
 
         Args:
             model: Model name (default from settings)
-            api_key: OpenAI API key (default from settings)
+            api_key: API key (default from settings)
             base_url: API base URL (default from settings)
+            default_headers: Optional extra headers (OpenRouter referer, etc.)
         """
         self.model = model or settings.openai_embedding_model
-        self.client = OpenAI(
-            api_key=api_key or settings.openai_api_key,
-            base_url=base_url or settings.openai_api_base
-        )
+        client_kwargs = {
+            "api_key": api_key or settings.openai_api_key,
+            "base_url": base_url or settings.openai_api_base,
+        }
+        if default_headers:
+            client_kwargs["default_headers"] = default_headers
+        self.client = OpenAI(**client_kwargs)
         self._dimension = None
-        logger.info(f"Initialized OpenAI embeddings with model: {self.model}")
+        logger.info(f"Initialized OpenAI-compatible embeddings with model: {self.model}")
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
@@ -411,7 +421,7 @@ def get_embedding_model(provider: str = None) -> EmbeddingModel:
     Factory function to get the appropriate embedding model.
 
     Args:
-        provider: 'openai', 'sentence-transformer', 'ollama', or 'lmstudio' (default from settings)
+        provider: 'openai', 'openrouter', 'sentence-transformer', 'ollama', or 'lmstudio'
 
     Returns:
         EmbeddingModel instance
@@ -420,6 +430,16 @@ def get_embedding_model(provider: str = None) -> EmbeddingModel:
 
     if provider == "openai":
         return OpenAIEmbeddings()
+    elif provider == "openrouter":
+        return OpenAIEmbeddings(
+            model=settings.openrouter_embedding_model,
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_api_base,
+            default_headers={
+                "HTTP-Referer": "https://pedirbot-demo.streamlit.app",
+                "X-Title": "PedIR Bot",
+            },
+        )
     elif provider == "sentence-transformer":
         return SentenceTransformerEmbeddings()
     elif provider == "ollama":

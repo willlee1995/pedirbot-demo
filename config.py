@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     # Streamlit test default: OpenRouter :free open-weight stand-in for local GPU
     openrouter_chat_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_metadata_model: str = "nvidia/nemotron-3.5-lightning:free"
+    openrouter_embedding_model: str = "nvidia/nemotron-3-embed-1b:free"
     collection_name: str = "pedir_knowledge_base"
 
     # Hugging Face Inference Endpoint Configuration
@@ -86,8 +87,9 @@ class Settings(BaseSettings):
     min_relevance_score: float = 0.1  # Minimum similarity score for retrieval
 
     # Embedding Model Options
-    embedding_provider: Literal["openai",
-                                "sentence-transformer", "ollama", "lmstudio"] = "ollama"
+    embedding_provider: Literal[
+        "openai", "openrouter", "sentence-transformer", "ollama", "lmstudio"
+    ] = "ollama"
     sentence_transformer_model: str = "jinaai/jina-embeddings-v2-base-en"
     ollama_embedding_model: str = "qwen3-embedding:latest"
 

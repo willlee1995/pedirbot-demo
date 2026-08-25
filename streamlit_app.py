@@ -200,9 +200,9 @@ def render_header():
     if is_cloud_demo():
         st.caption(
             "Cloud test: the same Agentic RAG graph as the local stack, with "
-            "OpenRouter **free open-weight** chat models as a stand-in for a "
+            "OpenRouter **free** chat and embedding models as a stand-in for a "
             "hospital GPU box. Answers come from the bundled demo leaflets, "
-            "not the full local knowledge base. Embeddings still use a hosted API."
+            "not the full local knowledge base."
         )
 
 
@@ -315,7 +315,8 @@ def render_sidebar(stats, chat_model: str):
         st.markdown(f"""
         <div class="stats-card">
             <strong>Documents:</strong> {stats['total_documents']}<br>
-            <strong>Embedding:</strong> {settings.embedding_provider}<br>
+            <strong>Embedding:</strong> {settings.embedding_provider}
+            ({settings.openrouter_embedding_model if settings.embedding_provider == "openrouter" else settings.openai_embedding_model})<br>
             <strong>LLM:</strong> {settings.llm_provider}<br>
             <strong>Chat model:</strong> {model_line}
         </div>

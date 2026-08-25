@@ -13,16 +13,17 @@ ROOT = Path(__file__).resolve().parent.parent
 USAGE_PATH = ROOT / ".demo_usage.json"
 
 CLOUD_DEFAULTS = {
-    "EMBEDDING_PROVIDER": "openai",
+    "EMBEDDING_PROVIDER": "openrouter",
     "USE_RERANKER": "false",
     "LANGSMITH_TRACING": "false",
     "CHROMA_PERSIST_DIRECTORY": "./chroma_db",
-    "COLLECTION_NAME": "pedir_knowledge_base",
+    "COLLECTION_NAME": "pedir_demo_nemotron_embed",
     "AGENT_MAX_ITERATIONS": "2",
     "TOP_K_RETRIEVAL": "4",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
     "OPENAI_CHAT_MODEL": "gpt-4o-mini",
     "OPENROUTER_CHAT_MODEL": "nvidia/nemotron-3.5-lightning:free",
+    "OPENROUTER_EMBEDDING_MODEL": "nvidia/nemotron-3-embed-1b:free",
     "DEMO_ACCESS_CODE": "cirse2026",
 }
 
@@ -66,8 +67,10 @@ def apply_cloud_defaults() -> None:
 
     if os.environ.get("OPENROUTER_API_KEY", "").strip():
         os.environ.setdefault("LLM_PROVIDER", "openrouter")
+        os.environ.setdefault("EMBEDDING_PROVIDER", "openrouter")
     elif os.environ.get("OPENAI_API_KEY", "").strip():
         os.environ.setdefault("LLM_PROVIDER", "openai")
+        os.environ.setdefault("EMBEDDING_PROVIDER", "openai")
 
     for key, value in CLOUD_DEFAULTS.items():
         os.environ.setdefault(key, value)
@@ -90,7 +93,8 @@ def missing_cloud_credentials() -> List[str]:
 
     if embedding_provider == "openai" and not os.environ.get("OPENAI_API_KEY", "").strip():
         missing.append("OPENAI_API_KEY (embeddings)")
-    if llm_provider == "openrouter" and not os.environ.get("OPENROUTER_API_KEY", "").strip():
+    needs_openrouter = embedding_provider == "openrouter" or llm_provider == "openrouter"
+    if needs_openrouter and not os.environ.get("OPENROUTER_API_KEY", "").strip():
         missing.append("OPENROUTER_API_KEY")
     if llm_provider == "openai" and not os.environ.get("OPENAI_API_KEY", "").strip():
         missing.append("OPENAI_API_KEY")
