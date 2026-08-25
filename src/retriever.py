@@ -1,6 +1,8 @@
 """LangChain-based retrieval system with BM25, SelfQueryRetriever and Reranker."""
 from typing import List, Dict, Any, Optional
 import functools
+import re
+
 from loguru import logger
 
 # LangChain imports
@@ -13,7 +15,6 @@ from config import settings
 # BM25 for hybrid search
 try:
     from rank_bm25 import BM25Okapi
-    import re
     BM25_AVAILABLE = True
     logger.debug("BM25 (rank_bm25) loaded successfully for hybrid search")
 except ImportError:

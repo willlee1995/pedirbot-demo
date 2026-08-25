@@ -339,7 +339,6 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
 
             # Strip thinking tokens if present
             if response_text:
-                import re
                 original_len = len(response_text)
                 # Pattern to match <unused94>thought...<unused95> or similar thinking blocks
                 # We use DOTALL so the `.` matches newlines as well
@@ -353,7 +352,6 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
 
             # Extract sources from tool messages
             if include_sources:
-                import re
                 for msg in messages:
                     if isinstance(msg, ToolMessage) or (hasattr(msg, 'name') and msg.name):
                         tool_name = msg.name if hasattr(msg, 'name') else 'Unknown'
