@@ -427,6 +427,12 @@ def get_embedding_model(provider: str = None) -> EmbeddingModel:
         EmbeddingModel instance
     """
     provider = provider or settings.embedding_provider
+    if (
+        provider == "openai"
+        and not settings.openai_api_key.strip()
+        and settings.openrouter_api_key.strip()
+    ):
+        provider = "openrouter"
 
     if provider == "openai":
         return OpenAIEmbeddings()

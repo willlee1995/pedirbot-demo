@@ -46,8 +46,14 @@ def is_cloud_demo() -> bool:
     return is_streamlit_cloud() or flag in {"1", "true", "yes"}
 
 
+def _set_env_if_blank(key: str, value: str) -> None:
+    """Write an env var only when it is missing or blank."""
+    if not os.environ.get(key, "").strip():
+        os.environ[key] = value
+
+
 def apply_streamlit_secrets() -> None:
-    """Copy root-level Streamlit secrets into the process environment."""
+    """Copy Streamlit secrets into the process environment."""
     try:
         import streamlit as st
 
@@ -57,7 +63,11 @@ def apply_streamlit_secrets() -> None:
 
     for key, value in secrets.items():
         if isinstance(value, (str, int, float, bool)):
-            os.environ.setdefault(str(key), str(value))
+            _set_env_if_blank(str(key), str(value))
+        elif hasattr(value, "items"):
+            for nested_key, nested_value in value.items():
+                if isinstance(nested_value, (str, int, float, bool)):
+                    _set_env_if_blank(str(nested_key), str(nested_value))
 
 
 def apply_cloud_defaults() -> None:
@@ -65,10 +75,12 @@ def apply_cloud_defaults() -> None:
     if not is_cloud_demo():
         return
 
-    if os.environ.get("OPENROUTER_API_KEY", "").strip():
-        os.environ.setdefault("LLM_PROVIDER", "openrouter")
-        os.environ.setdefault("EMBEDDING_PROVIDER", "openrouter")
-    elif os.environ.get("OPENAI_API_KEY", "").strip():
+    has_openrouter = bool(os.environ.get("OPENROUTER_API_KEY", "").strip())
+    has_openai = bool(os.environ.get("OPENAI_API_KEY", "").strip())
+    if has_openrouter and not has_openai:
+        os.environ["LLM_PROVIDER"] = os.environ.get("LLM_PROVIDER") or "openrouter"
+        os.environ["EMBEDDING_PROVIDER"] = "openrouter"
+    elif has_openai and not has_openrouter:
         os.environ.setdefault("LLM_PROVIDER", "openai")
         os.environ.setdefault("EMBEDDING_PROVIDER", "openai")
 
