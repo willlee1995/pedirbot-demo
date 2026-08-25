@@ -136,7 +136,7 @@ PROCESSING_STEPS = [
     ("📚", "Searching knowledge base..."),
     ("📊", "Evaluating document relevance..."),
     ("🔒", "Running safety check..."),
-    ("✍️", "Generating response..."),
+    ("✍️", "Generating response (free models may queue up to a minute)..."),
 ]
 
 

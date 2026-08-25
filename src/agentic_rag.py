@@ -743,8 +743,12 @@ def create_agentic_rag_graph(
         )
         logger.debug(f"Generate prompt length: {len(prompt)} chars")
 
-        # Use structured output with include_raw=True for debugging
+        # Use structured output with include_raw=True for debugging.
+        # OpenRouter :free models often queue, then hang on JSON-schema tool
+        # calling; skip that path and generate plain text.
         try:
+            if settings.llm_provider == "openrouter":
+                raise ValueError("skip structured output on OpenRouter")
             result = _invoke_with_retry(
                 answer_llm, [HumanMessage(content=prompt)],
                 label="generate_answer",

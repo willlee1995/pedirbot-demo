@@ -1,4 +1,5 @@
 """RAG pipeline implementation using LangGraph Agentic RAG."""
+import re
 from typing import List, Dict, Any, Optional
 
 from langgraph.graph import StateGraph
@@ -193,6 +194,26 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                 'sources': [],
                 'is_emergency': True,
                 'total_time': total_time,
+            }
+
+        greeting = re.compile(
+            r"^(hi|hello|hey|yo|thanks|thank you|ok|okay|"
+            r"good morning|good afternoon|good evening|"
+            r"你好|早晨|午安|晚安|多謝|谢谢)[\s!.?？！]*$",
+            re.IGNORECASE,
+        )
+        if greeting.match((query or "").strip()):
+            end_time = time.time()
+            return {
+                "response": (
+                    "Hello — I am PedIR-Bot, an educational assistant for "
+                    "paediatric interventional radiology. Ask about a procedure, "
+                    "fasting, a PICC line, or aftercare. I am not a substitute "
+                    "for your clinical team."
+                ),
+                "sources": [],
+                "is_emergency": False,
+                "total_time": end_time - start_time,
             }
 
         # Use LangGraph to generate response

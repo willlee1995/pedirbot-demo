@@ -85,9 +85,9 @@ def get_langchain_llm(provider: str = None, **kwargs) -> BaseChatModel:
             api_key=openrouter_key,
             base_url=kwargs.get('base_url', settings.openrouter_api_base),
             temperature=kwargs.get('temperature', settings.agent_temperature),
-            max_tokens=kwargs.get('max_tokens', 8192),
+            max_tokens=kwargs.get('max_tokens', 1024),
             streaming=kwargs.get('streaming', False),
-            request_timeout=kwargs.get('request_timeout', 120),
+            request_timeout=kwargs.get('request_timeout', 60),
             default_headers={"HTTP-Referer": "https://pedir-bot.local", "X-Title": "PedIR Bot"},
             extra_body={
                 "transforms": ["middle-out"],
