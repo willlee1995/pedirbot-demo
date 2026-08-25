@@ -4,9 +4,14 @@ from abc import ABC, abstractmethod
 import os
 
 import numpy as np
-from openai import OpenAI
+from openai import AuthenticationError, BadRequestError, OpenAI
 from loguru import logger
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import (
+    retry,
+    retry_if_exception,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from config import settings
 
@@ -80,22 +85,50 @@ class OpenAIEmbeddings(EmbeddingModel):
         self._dimension = None
         logger.info(f"Initialized OpenAI-compatible embeddings with model: {self.model}")
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def _needs_nemotron_input_type(self) -> bool:
+        name = (self.model or "").lower()
+        return "nemotron" in name and "embed" in name
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception(
+            lambda exc: not isinstance(
+                exc, (BadRequestError, AuthenticationError, ValueError)
+            )
+        ),
+        reraise=True,
+    )
+    def embed_documents(
+        self,
+        texts: List[str],
+        input_type: str = "passage",
+    ) -> List[List[float]]:
         """
         Embed a list of documents with retry logic.
 
         Args:
             texts: List of text strings to embed
+            input_type: NVIDIA Nemotron Embed requires query or passage
 
         Returns:
             List of embedding vectors
         """
+        cleaned = [text for text in texts if (text or "").strip()]
+        if not cleaned:
+            raise ValueError("No non-empty texts to embed.")
+        create_kwargs = {
+            "model": self.model,
+            "input": cleaned,
+            "encoding_format": "float",
+        }
+        extra_body = {}
+        if self._needs_nemotron_input_type():
+            extra_body["input_type"] = input_type
+        if extra_body:
+            create_kwargs["extra_body"] = extra_body
         try:
-            response = self.client.embeddings.create(
-                model=self.model,
-                input=texts
-            )
+            response = self.client.embeddings.create(**create_kwargs)
             embeddings = [item.embedding for item in response.data]
 
             # Cache dimension
@@ -103,6 +136,12 @@ class OpenAIEmbeddings(EmbeddingModel):
                 self._dimension = len(embeddings[0])
 
             return embeddings
+        except BadRequestError as e:
+            detail = getattr(e, "body", None) or getattr(e, "message", None) or e
+            logger.error(f"Embedding request rejected: {detail}")
+            raise ValueError(
+                f"Embedding request rejected by {self.model}: {detail}"
+            ) from e
         except Exception as e:
             logger.error(f"Error generating embeddings: {e}")
             raise
@@ -117,7 +156,7 @@ class OpenAIEmbeddings(EmbeddingModel):
         Returns:
             Embedding vector
         """
-        return self.embed_documents([text])[0]
+        return self.embed_documents([text], input_type="query")[0]
 
     @property
     def dimension(self) -> int:
