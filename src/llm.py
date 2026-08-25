@@ -71,9 +71,19 @@ def get_langchain_llm(provider: str = None, **kwargs) -> BaseChatModel:
         )
     elif provider == "openrouter":
         # OpenRouter uses OpenAI-compatible API
+        openrouter_key = (
+            kwargs.get("api_key")
+            or os.environ.get("OPENROUTER_API_KEY", "")
+            or settings.openrouter_api_key
+        ).strip()
+        if not openrouter_key:
+            raise ValueError(
+                "No OpenRouter API key. In Streamlit Secrets set OPENROUTER_API_KEY "
+                "to the full key from https://openrouter.ai/keys (starts with sk-or-v1-)."
+            )
         return ChatOpenAI(
             model=kwargs.get('model', settings.openrouter_chat_model),
-            api_key=kwargs.get('api_key', settings.openrouter_api_key),
+            api_key=openrouter_key,
             base_url=kwargs.get('base_url', settings.openrouter_api_base),
             temperature=kwargs.get('temperature', settings.agent_temperature),
             max_tokens=kwargs.get('max_tokens', 8192),

@@ -1,6 +1,7 @@
 """Embedding generation for documents and queries."""
 from typing import List, Union
 from abc import ABC, abstractmethod
+import os
 
 import numpy as np
 from openai import OpenAI
@@ -55,9 +56,23 @@ class OpenAIEmbeddings(EmbeddingModel):
             default_headers: Optional extra headers (OpenRouter referer, etc.)
         """
         self.model = model or settings.openai_embedding_model
+        resolved_base = base_url or settings.openai_api_base
+        resolved_key = (api_key or "").strip()
+        if not resolved_key and resolved_base and "openrouter.ai" in resolved_base:
+            resolved_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+        if not resolved_key:
+            resolved_key = (
+                os.environ.get("OPENAI_API_KEY", "").strip()
+                or settings.openai_api_key.strip()
+            )
+        if not resolved_key:
+            raise ValueError(
+                "No embedding API key. In Streamlit Secrets set OPENROUTER_API_KEY "
+                "to the full key from https://openrouter.ai/keys (starts with sk-or-v1-)."
+            )
         client_kwargs = {
-            "api_key": api_key or settings.openai_api_key,
-            "base_url": base_url or settings.openai_api_base,
+            "api_key": resolved_key,
+            "base_url": resolved_base,
         }
         if default_headers:
             client_kwargs["default_headers"] = default_headers
