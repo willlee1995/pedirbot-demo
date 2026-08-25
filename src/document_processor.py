@@ -272,7 +272,7 @@ class DocumentProcessor:
         """Detect source organization from file path or name."""
         path_lower = file_path.lower()
 
-        if 'hkch' in path_lower or 'hkch' in path_lower:
+        if 'hkch' in path_lower or 'demo_kb' in path_lower:
             return 'HKCH'
         elif 'sickkids' in path_lower or 'sick_kids' in path_lower:
             return 'SickKids'

@@ -4,6 +4,7 @@ from typing import TypedDict, Annotated, Literal, List, Dict, Any, Optional
 import logging
 import re
 import time
+import uuid
 
 from src.safety_guard import SafetyGuard, RiskLevel, SafetyAssessment
 from src.data_models import RAGResponse
@@ -333,8 +334,31 @@ def create_agentic_rag_graph(
             logger.info("=== Node: generate_query_or_respond ===")
             logger.info(f"State messages count: {len(state.get('messages', []))}")
 
-            # Add system instruction to prefer semantic search
             messages = state["messages"]
+            if settings.llm_provider == "openrouter":
+                question = ""
+                for msg in reversed(messages):
+                    if isinstance(msg, HumanMessage):
+                        question = extract_text_from_content(msg.content)
+                        break
+                if question:
+                    logger.info(
+                        f"OpenRouter demo: retrieve directly for: {question[:80]}"
+                    )
+                    return {
+                        "messages": [
+                            AIMessage(
+                                content="",
+                                tool_calls=[{
+                                    "name": "search_kb",
+                                    "args": {"query": question[:400]},
+                                    "id": f"call_{uuid.uuid4().hex[:8]}",
+                                }],
+                            )
+                        ]
+                    }
+
+            # Add system instruction to prefer semantic search
             system_instruction = prompts.RETRIEVAL_STRATEGY_INSTRUCTION
 
             # Add system instruction as first message if not already present
@@ -394,7 +418,11 @@ def create_agentic_rag_graph(
 
                         # Preprocess query to correct typos before search
                         original_args = tool_call_json.get("arguments", tool_call_json.get("args", {}))
-                        if tool_name == "search_kb" and "query" in original_args:
+                        if (
+                            tool_name == "search_kb"
+                            and "query" in original_args
+                            and settings.llm_provider != "openrouter"
+                        ):
                             original_query = original_args["query"]
                             try:
                                 clean_prompt = prompts.QUERY_CLEAN_PROMPT.format(query=original_query)
@@ -448,7 +476,11 @@ def create_agentic_rag_graph(
 
                     # Preprocess query to correct typos before search
                     original_args = tool_call_json.get("arguments", tool_call_json.get("args", {}))
-                    if tool_name == "search_kb" and "query" in original_args:
+                    if (
+                        tool_name == "search_kb"
+                        and "query" in original_args
+                        and settings.llm_provider != "openrouter"
+                    ):
                         original_query = original_args["query"]
                         try:
                             clean_prompt = prompts.QUERY_CLEAN_PROMPT.format(query=original_query)
@@ -560,6 +592,10 @@ def create_agentic_rag_graph(
 
             if not context:
                 logger.warning("No context found for grading, defaulting to generate_answer")
+                return "generate_answer"
+
+            if settings.llm_provider == "openrouter":
+                logger.info("OpenRouter demo: skip grader LLM, generate from retrieved context")
                 return "generate_answer"
 
             # Enhance context with metadata for better grading
@@ -748,6 +784,7 @@ def create_agentic_rag_graph(
         # calling; skip that path and generate plain text.
         try:
             if settings.llm_provider == "openrouter":
+                logger.info("OpenRouter demo: raw generate (skip structured JSON)")
                 raise ValueError("skip structured output on OpenRouter")
             result = _invoke_with_retry(
                 answer_llm, [HumanMessage(content=prompt)],
