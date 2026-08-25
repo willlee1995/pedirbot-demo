@@ -1,5 +1,7 @@
 """RAG pipeline implementation using LangGraph Agentic RAG."""
+import json
 import re
+import time
 from typing import List, Dict, Any, Optional
 
 from langgraph.graph import StateGraph
@@ -150,7 +152,6 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
         Returns:
             Dict with 'response', 'sources', 'is_emergency', and 'total_time' keys
         """
-        import time
         start_time = time.time()
         logger.info("=" * 80)
         logger.info(f"🔄 STARTING QUERY PROCESSING")
@@ -405,7 +406,6 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
 
             # Parse structured output if available
             try:
-                import json
                 # Try to parse response_text as JSON
                 structured_data = json.loads(response_text)
 

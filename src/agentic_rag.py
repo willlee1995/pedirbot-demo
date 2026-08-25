@@ -411,7 +411,6 @@ def create_agentic_rag_graph(
                     tool_name = tool_call_json.get("tool") or tool_call_json.get("name") if tool_call_json else None
                     if tool_name:
                         # Create tool call ID
-                        import uuid
                         call_id = f"call_{uuid.uuid4().hex[:8]}"
 
                         logger.info(f"Manual tool call detected: {tool_name}")
@@ -469,7 +468,6 @@ def create_agentic_rag_graph(
                 tool_name = tool_call_json.get("tool") or tool_call_json.get("name") if tool_call_json else None
                 if tool_name:
                     # Create tool call ID
-                    import uuid
                     call_id = f"call_{uuid.uuid4().hex[:8]}"
 
                     logger.info(f"Manual tool call detected: {tool_name}")
@@ -519,7 +517,6 @@ def create_agentic_rag_graph(
                             question = extract_text_from_content(msg.content)
                             break
                     if question:
-                        import uuid
                         call_id = f"call_{uuid.uuid4().hex[:8]}"
                         ai_msg = AIMessage(
                             content="",
@@ -1062,8 +1059,6 @@ def create_agentic_rag_graph(
     # Node wrapper for tool execution with validation/timing/multi-query support
     def retrieve_with_timing(state: MessagesState):
         """Wrapper around ToolNode that logs tool execution details and timing."""
-        import time
-
         # Get messages that need tool execution
         messages = state.get("messages", [])
 
