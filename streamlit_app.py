@@ -211,6 +211,34 @@ def init_rag_system(chat_model: str):
     return rag_pipeline, stats
 
 
+_LOCAL_SOURCE_ORGS = frozenset({"HKCH", "HKSIR"})
+
+
+def source_locality(source: dict) -> str:
+    """HKCH and HKSIR are local; every other leaflet is non-local."""
+    org = str(source.get("source_org") or "").strip().upper()
+    region = str(source.get("region") or "").strip().lower()
+    if org in _LOCAL_SOURCE_ORGS or region == "hong kong":
+        return "Local"
+    return "Non-local"
+
+
+def render_source_localities(sources: list) -> None:
+    """Show only Local / Non-local, in that order, without org names."""
+    labels = []
+    for source in sources:
+        label = source_locality(source)
+        if label not in labels:
+            labels.append(label)
+    labels.sort(key=lambda item: 0 if item == "Local" else 1)
+    with st.expander(
+        f"📚 Sources ({len(labels)})",
+        expanded=st.session_state.show_sources,
+    ):
+        for label in labels:
+            st.markdown(f"**{label}**")
+
+
 def init_session_state():
     """Initialize session state variables."""
     if "messages" not in st.session_state:
@@ -433,18 +461,7 @@ def render_message(message):
                 """, unsafe_allow_html=True)
         
         if message.get("sources"):
-            with st.expander(
-                f"📚 Sources ({len(message['sources'])} documents)",
-                expanded=st.session_state.show_sources,
-            ):
-                for i, source in enumerate(message["sources"][:5], 1):
-                    score = source.get("score", 0)
-                    score_color = "green" if score >= 0.7 else "orange" if score >= 0.5 else "red"
-                    st.markdown(f"""
-                    **{i}. {source.get('filename', 'Unknown')}**  
-                    *{source.get('source_org', 'Unknown source')}* | 
-                    Score: :{score_color}[{score:.3f}]
-                    """)
+            render_source_localities(message["sources"])
 
 
 class ProgressTracker:
@@ -678,18 +695,7 @@ def main():
                 
                 # Show sources
                 if sources:
-                    with st.expander(
-                        f"📚 Sources ({len(sources)} documents)",
-                        expanded=st.session_state.show_sources,
-                    ):
-                        for i, source in enumerate(sources[:5], 1):
-                            score = source.get("score", 0)
-                            score_color = "green" if score >= 0.7 else "orange" if score >= 0.5 else "red"
-                            st.markdown(f"""
-                            **{i}. {source.get('filename', 'Unknown')}**  
-                            *{source.get('source_org', 'Unknown source')}* | 
-                            Score: :{score_color}[{score:.3f}]
-                            """)
+                    render_source_localities(sources)
                 
                 # Store in memory and session
                 st.session_state.memory.add_assistant_message(
