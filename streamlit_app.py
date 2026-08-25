@@ -93,12 +93,16 @@ st.markdown("""
         border-radius: 0.5rem;
         margin-bottom: 0.5rem;
     }
+    .stApp {
+        background-color: #0B1620;
+    }
     .main-header {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+        background: linear-gradient(135deg, #006088 0%, #0B1620 100%);
         padding: 1.5rem;
         border-radius: 0.75rem;
-        color: white;
+        color: #E8EEF2;
         margin-bottom: 1rem;
+        border: 1px solid rgba(180, 162, 120, 0.35);
     }
     .main-header h1 {
         margin: 0;
@@ -110,22 +114,25 @@ st.markdown("""
         font-size: 0.9rem;
     }
     .stats-card {
-        background: #f8f9fa;
+        background: #132A38;
+        color: #E8EEF2;
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #2d5a87;
+        border-left: 4px solid #B4A278;
         margin-bottom: 0.5rem;
     }
     .safety-warning {
-        background: #fff3cd;
-        border: 1px solid #ffc107;
+        background: #3d3420;
+        border: 1px solid #B4A278;
+        color: #f3e6c8;
         padding: 0.75rem;
         border-radius: 0.5rem;
         margin-top: 0.5rem;
     }
     .safety-critical {
-        background: #f8d7da;
+        background: #3a1c20;
         border: 1px solid #dc3545;
+        color: #f5c6cb;
         padding: 0.75rem;
         border-radius: 0.5rem;
         margin-top: 0.5rem;
@@ -148,8 +155,9 @@ st.markdown("""
         color: #a5d6a7;
     }
     .decomposed-badge {
-        background: #e1f5fe;
-        color: #01579b;
+        background: #163040;
+        color: #4BA3C7;
+        border: 1px solid #006088;
         padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
         font-size: 0.8rem;
