@@ -15,6 +15,40 @@ from src.safety_guard import SafetyGuard, SafetyAssessment, RiskLevel
 from src.llm import get_llm_provider
 from config import settings
 
+
+def format_provider_error(exc: BaseException) -> str:
+    """Turn an OpenRouter / OpenAI API error into text the tester can read."""
+    body = None
+    status = None
+    seen = set()
+    current: Optional[BaseException] = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        body = getattr(current, "body", None) or body
+        status = getattr(current, "status_code", None) or status
+        current = current.__cause__ or getattr(current, "__context__", None)
+
+    if isinstance(body, dict):
+        err = body.get("error", body)
+        if not isinstance(err, dict):
+            err = {"message": str(err)}
+        meta = err.get("metadata") if isinstance(err.get("metadata"), dict) else {}
+        code = err.get("code") or status or "error"
+        raw = meta.get("raw") or err.get("message") or str(exc)
+        lines = [f"Error code: {code}", "", str(raw)]
+        provider = meta.get("provider_name")
+        if provider:
+            lines.extend(["", f"Provider: {provider}"])
+        hint = meta.get("remedy_hint")
+        if hint:
+            lines.extend(["", str(hint)])
+        return "\n".join(lines)
+
+    text = str(exc).strip() or repr(exc)
+    if status:
+        return f"Error code: {status}\n\n{text}"
+    return text
+
 # Import LangSmith traceable decorator
 try:
     from langsmith import traceable
@@ -478,8 +512,10 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
             logger.info(f"❌ QUERY FAILED")
             logger.info(f"⏱️  Time Before Error: {total_time:.2f} seconds")
             logger.info("=" * 80)
+            error_text = format_provider_error(e)
             return {
-                'response': "I'm sorry, I encountered an error while processing your question. Please try again or contact the IR nurse coordinator for assistance.",
+                'response': error_text,
+                'error': error_text,
                 'sources': [],
                 'is_emergency': False,
                 'total_time': total_time,

@@ -62,7 +62,7 @@ for _import_attempt in range(2):
             record_demo_query,
         )
         from src.agentic_rag import create_agentic_rag_graph
-        from src.rag_pipeline import RAGPipeline
+        from src.rag_pipeline import RAGPipeline, format_provider_error
         from src.llm import get_langchain_llm
         from src.retriever import AdvancedRetriever
         from src.vector_store import VectorStore
@@ -442,7 +442,10 @@ def render_message(message):
             </span>
             """, unsafe_allow_html=True)
         
-        st.markdown(message["content"])
+        if message.get("is_error"):
+            st.error(message["content"])
+        else:
+            st.markdown(message["content"])
         
         # Show safety assessment if available
         if message.get("safety_assessment"):
@@ -671,6 +674,7 @@ def main():
                 safety = result.get("safety_assessment")
                 was_decomposed = result.get("was_decomposed", False)
                 sub_query_count = result.get("sub_query_count", 0)
+                is_error = bool(result.get("error"))
                 
                 # Show decomposition badge if applicable
                 if was_decomposed:
@@ -680,8 +684,10 @@ def main():
                     </span>
                     """, unsafe_allow_html=True)
                 
-                # Display response
-                st.markdown(response)
+                if is_error:
+                    st.error(response)
+                else:
+                    st.markdown(response)
                 
                 # Show safety warning if needed
                 if safety:
@@ -694,7 +700,7 @@ def main():
                         """, unsafe_allow_html=True)
                 
                 # Show sources
-                if sources:
+                if sources and not is_error:
                     render_source_localities(sources)
                 
                 # Store in memory and session
@@ -707,12 +713,19 @@ def main():
                     "sources": sources,
                     "safety_assessment": safety,
                     "was_decomposed": was_decomposed,
-                    "sub_query_count": sub_query_count
+                    "sub_query_count": sub_query_count,
+                    "is_error": is_error,
                 })
                 
             except Exception as e:
                 progress_tracker.complete()
-                st.error(f"Error generating response: {e}")
+                error_text = format_provider_error(e)
+                st.error(error_text)
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": error_text,
+                    "is_error": True,
+                })
 
 
 if __name__ == "__main__":
