@@ -14,6 +14,32 @@ import time
 
 import streamlit as st
 
+ROOT = Path(__file__).resolve().parent
+_MOUNT_SRC = Path("/mount/src")
+
+
+def _prepare_import_path() -> None:
+    """Keep `import src` on this repo. Cloud mounts the app under /mount/src/."""
+    cleaned = []
+    for entry in sys.path:
+        try:
+            if Path(entry).resolve() == _MOUNT_SRC:
+                continue
+        except OSError:
+            pass
+        cleaned.append(entry)
+    sys.path[:] = cleaned
+    sys.path.insert(0, str(ROOT))
+
+
+def _clear_src_modules() -> None:
+    for name in list(sys.modules):
+        if name == "src" or name.startswith("src."):
+            del sys.modules[name]
+
+
+_prepare_import_path()
+
 # Page config must be the first Streamlit command.
 st.set_page_config(
     page_title="PedIR-Bot | HKCH Radiology",
@@ -22,38 +48,42 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
-
-from src.cloud_bootstrap import (
-    apply_streamlit_secrets_and_cloud_defaults,
-    check_demo_query,
-    day_queries_used,
-    demo_access_code,
-    demo_quota_limits,
-    ensure_demo_knowledge_base,
-    is_cloud_demo,
-    missing_cloud_credentials,
-    record_demo_query,
-)
+for _import_attempt in range(2):
+    try:
+        from src.cloud_bootstrap import (
+            apply_streamlit_secrets_and_cloud_defaults,
+            check_demo_query,
+            day_queries_used,
+            demo_access_code,
+            demo_quota_limits,
+            ensure_demo_knowledge_base,
+            is_cloud_demo,
+            missing_cloud_credentials,
+            record_demo_query,
+        )
+        from src.agentic_rag import create_agentic_rag_graph
+        from src.rag_pipeline import RAGPipeline
+        from src.llm import get_langchain_llm
+        from src.retriever import AdvancedRetriever
+        from src.vector_store import VectorStore
+        from src.embeddings import get_embedding_model
+        from src.conversation_memory import ConversationMemory
+        from src.openrouter_demo_models import (
+            AA_INDEX_NOTE,
+            OPENROUTER_DEMO_MODELS,
+            default_demo_model_id,
+            demo_model_label,
+            get_demo_model,
+        )
+        from config import settings
+        break
+    except KeyError:
+        _clear_src_modules()
+        _prepare_import_path()
+        if _import_attempt == 1:
+            raise
 
 apply_streamlit_secrets_and_cloud_defaults()
-
-from src.agentic_rag import create_agentic_rag_graph
-from src.rag_pipeline import RAGPipeline
-from src.llm import get_langchain_llm
-from src.retriever import AdvancedRetriever
-from src.vector_store import VectorStore
-from src.embeddings import get_embedding_model
-from src.conversation_memory import ConversationMemory
-from src.openrouter_demo_models import (
-    AA_INDEX_NOTE,
-    OPENROUTER_DEMO_MODELS,
-    default_demo_model_id,
-    demo_model_label,
-    get_demo_model,
-)
-from config import settings
 
 # Custom CSS for chat styling
 st.markdown("""
@@ -508,6 +538,13 @@ def main():
 
     if not gate_demo_access():
         st.stop()
+
+    if is_cloud_demo() and sys.version_info >= (3, 14):
+        st.warning(
+            "This Cloud instance is running Python 3.14. Open the app "
+            "settings, set Python to 3.12, and reboot. 3.14 causes import "
+            "errors when Cloud pulls a new commit."
+        )
 
     missing = missing_cloud_credentials()
     if missing:
