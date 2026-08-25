@@ -357,6 +357,8 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                     if isinstance(msg, ToolMessage) or (hasattr(msg, 'name') and msg.name):
                         tool_name = msg.name if hasattr(msg, 'name') else 'Unknown'
                         content = msg.content if hasattr(msg, 'content') else str(msg)
+                        if not isinstance(content, str):
+                            content = str(content)
 
                         # Parse document info from formatted tool output
                         # Format: [Document N] Source: ORG | Region: X | Category: Y | filename (Relevance: 0.XXX)

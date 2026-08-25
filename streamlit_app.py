@@ -337,11 +337,13 @@ def render_sidebar(stats, chat_model: str):
         # Toggles
         st.session_state.show_sources = st.toggle(
             "Show source documents",
-            value=st.session_state.show_sources
+            value=True,
+            key="show_sources_toggle",
         )
         st.session_state.show_steps = st.toggle(
             "Show processing steps",
-            value=st.session_state.show_steps
+            value=st.session_state.show_steps,
+            key="show_steps_toggle",
         )
         
         st.divider()
@@ -377,7 +379,8 @@ def render_sidebar(stats, chat_model: str):
                 {st.session_state.demo_queries_used}/{limits['session']} questions<br>
                 <strong>Shared today:</strong>
                 {day_queries_used()}/{limits['day']} questions<br>
-                <strong>Max length:</strong> {limits['chars']} characters
+                <strong>Max question:</strong> {limits['chars']} characters
+                (answer length is separate)
             </div>
             """, unsafe_allow_html=True)
 
@@ -429,9 +432,11 @@ def render_message(message):
                 </div>
                 """, unsafe_allow_html=True)
         
-        # Show sources if enabled
-        if message.get("sources") and st.session_state.show_sources:
-            with st.expander(f"📚 Sources ({len(message['sources'])} documents)"):
+        if message.get("sources"):
+            with st.expander(
+                f"📚 Sources ({len(message['sources'])} documents)",
+                expanded=st.session_state.show_sources,
+            ):
                 for i, source in enumerate(message["sources"][:5], 1):
                     score = source.get("score", 0)
                     score_color = "green" if score >= 0.7 else "orange" if score >= 0.5 else "red"
@@ -672,8 +677,11 @@ def main():
                         """, unsafe_allow_html=True)
                 
                 # Show sources
-                if sources and st.session_state.show_sources:
-                    with st.expander(f"📚 Sources ({len(sources)} documents)"):
+                if sources:
+                    with st.expander(
+                        f"📚 Sources ({len(sources)} documents)",
+                        expanded=st.session_state.show_sources,
+                    ):
                         for i, source in enumerate(sources[:5], 1):
                             score = source.get("score", 0)
                             score_color = "green" if score >= 0.7 else "orange" if score >= 0.5 else "red"
