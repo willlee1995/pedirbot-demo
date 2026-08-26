@@ -57,6 +57,7 @@ from loguru import logger
 
 from src.document_processor import DocumentChunk
 from src.embeddings import EmbeddingModel
+from src.source_allowlist import filter_live_chunks, filter_retrieval_hits, plan_live_search
 from config import settings
 
 
@@ -123,6 +124,13 @@ class VectorStore:
             chunks: List of DocumentChunk objects
             batch_size: Number of documents to process at once
         """
+        chunks = filter_live_chunks(chunks)
+        if not chunks:
+            logger.warning(
+                "No allowlisted documents to add (live orgs: HKSIR, HKCH, CIRSE)"
+            )
+            return
+
         logger.info(f"Adding {len(chunks)} documents to vector store...")
 
         # Convert DocumentChunk to LangChain Document
@@ -200,6 +208,15 @@ class VectorStore:
             List of results with content, metadata, and scores
         """
         k = k or settings.top_k_retrieval
+
+        search_plan = plan_live_search(filter_dict)
+        if not search_plan.allowed:
+            logger.warning(
+                "Rejected knowledge-base search for a source org outside the "
+                "public live allowlist (HKSIR, HKCH, CIRSE)"
+            )
+            return []
+        filter_dict = search_plan.filter_dict
 
         # Suppress telemetry errors during search
         import warnings
@@ -279,7 +296,7 @@ class VectorStore:
                 'id': doc.metadata.get('chunk_id', doc.metadata.get('id', ''))
             })
 
-        return formatted_results
+        return filter_retrieval_hits(formatted_results)
 
     def as_retriever(self, **kwargs):
         """Get LangChain retriever from vector store."""

@@ -10,6 +10,14 @@ from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
 
 from src.vector_store import VectorStore
+from src.source_allowlist import (
+    HONG_KONG_LIVE_ORGS,
+    canonicalize_live_org,
+    document_is_live,
+    filter_retrieval_hits,
+    live_orgs_csv,
+    plan_live_search,
+)
 from config import settings
 
 # BM25 for hybrid search
@@ -128,7 +136,7 @@ class BM25Retriever:
                 })
 
         logger.debug(f"BM25 returned {len(results)} results for query: {query[:50]}...")
-        return results
+        return filter_retrieval_hits(results)
 
 
 class AdvancedRetriever:
@@ -166,14 +174,20 @@ class AdvancedRetriever:
                 all_docs_data = collection.get()
 
                 if all_docs_data and all_docs_data.get('documents'):
-                    # Convert to LangChain Documents
+                    # Convert to LangChain Documents (live allowlist only)
                     docs = []
                     for i, content in enumerate(all_docs_data['documents']):
                         metadata = all_docs_data['metadatas'][i] if all_docs_data.get('metadatas') else {}
+                        if not document_is_live(metadata):
+                            continue
                         docs.append(Document(page_content=content, metadata=metadata))
 
-                    self.bm25_retriever = BM25Retriever(docs)
-                    logger.info(f"BM25 hybrid search enabled with {len(docs)} documents")
+                    if docs:
+                        self.bm25_retriever = BM25Retriever(docs)
+                        logger.info(f"BM25 hybrid search enabled with {len(docs)} documents")
+                    else:
+                        logger.warning("No allowlisted documents found for BM25 indexing")
+                        self.use_hybrid_search = False
                 else:
                     logger.warning("No documents found for BM25 indexing")
                     self.use_hybrid_search = False
@@ -198,7 +212,10 @@ class AdvancedRetriever:
                 metadata_field_info = [
                     AttributeInfo(
                         name="source_org",
-                        description="The source organization (HKCH, SickKids, SIR, HKSIR, CIRSE)",
+                        description=(
+                            "The source organization "
+                            f"({live_orgs_csv()})"
+                        ),
                         type="string",
                     ),
                     AttributeInfo(
@@ -401,6 +418,14 @@ class AdvancedRetriever:
         """
         k = k or settings.top_k_retrieval
 
+        search_plan = plan_live_search(filter_dict)
+        if not search_plan.allowed:
+            logger.warning(
+                "Rejected retrieval for a source org outside the public live allowlist"
+            )
+            return []
+        filter_dict = search_plan.filter_dict
+
         logger.debug(f"Retrieving documents for query: {query[:50]}...")
 
         # Hybrid search: combine BM25 and semantic results
@@ -426,7 +451,8 @@ class AdvancedRetriever:
             def calculate_boosted_rrf(rank, metadata):
                 """Calculate RRF score with a 2.0x boost for local HKCH/HKSIR resources."""
                 base_score = 1.0 / (rrf_k + rank + 1)
-                is_local = metadata.get('source_org') in ['HKCH', 'HKSIR'] or metadata.get('region') == 'Hong Kong'
+                org = canonicalize_live_org(metadata.get('source_org'))
+                is_local = org in HONG_KONG_LIVE_ORGS or metadata.get('region') == 'Hong Kong'
                 return base_score * 2.0 if is_local else base_score
 
             # Score BM25 results
@@ -482,7 +508,7 @@ class AdvancedRetriever:
                     })
 
             logger.info(f"Retrieved {len(results)} documents (hybrid search)")
-            return results
+            return filter_retrieval_hits(results)
 
         # Fallback: Use LangChain retriever (semantic only)
         if filter_dict and (SelfQueryRetriever is None or not isinstance(self.retriever, SelfQueryRetriever)):
@@ -500,12 +526,12 @@ class AdvancedRetriever:
                 else:
                     logger.warning("Retriever doesn't have get_relevant_documents or invoke, using vector store directly")
                     results = self.vector_store.similarity_search(query=query, k=k, filter_dict=filter_dict)
-                    return results
+                    return filter_retrieval_hits(results)
             except Exception as e:
                 logger.warning(f"Error using retriever: {e}, falling back to direct vector store search")
                 logger.exception(e)
                 results = self.vector_store.similarity_search(query=query, k=k, filter_dict=filter_dict)
-                return results
+                return filter_retrieval_hits(results)
 
             # Apply reranker if enabled
             if self.use_reranker and self.reranker is not None:
@@ -528,7 +554,7 @@ class AdvancedRetriever:
                 })
 
         logger.info(f"Retrieved {len(results)} documents")
-        return results
+        return filter_retrieval_hits(results)
 
     def rebuild_index(self):
         """Rebuild the retriever index (placeholder for future implementation)."""

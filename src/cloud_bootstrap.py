@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from src.document_processor import DocumentProcessor
+from src.source_allowlist import filter_live_chunks
 
 ROOT = Path(__file__).resolve().parent.parent
 USAGE_PATH = ROOT / ".demo_usage.json"
@@ -136,6 +137,7 @@ def ensure_demo_knowledge_base(
     for path in DEMO_SOURCE_DIRS:
         if path.is_dir():
             chunks.extend(processor.process_directory(str(path)))
+    chunks = filter_live_chunks(chunks)
     if not chunks:
         return 0
     vector_store.add_documents(chunks)

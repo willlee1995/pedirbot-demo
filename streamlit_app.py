@@ -76,6 +76,11 @@ for _import_attempt in range(2):
             get_demo_model,
         )
         from config import settings
+        from src.source_allowlist import (
+            HONG_KONG_LIVE_ORGS,
+            filter_citation_sources,
+            live_orgs_csv,
+        )
         break
     except KeyError:
         _clear_src_modules()
@@ -211,20 +216,23 @@ def init_rag_system(chat_model: str):
     return rag_pipeline, stats
 
 
-_LOCAL_SOURCE_ORGS = frozenset({"HKCH", "HKSIR"})
+_LOCAL_SOURCE_ORGS = HONG_KONG_LIVE_ORGS
 
 
 def source_locality(source: dict) -> str:
     """HKCH and HKSIR are local; every other leaflet is non-local."""
     org = str(source.get("source_org") or "").strip().upper()
     region = str(source.get("region") or "").strip().lower()
-    if org in _LOCAL_SOURCE_ORGS or region == "hong kong":
+    if org in {item.upper() for item in _LOCAL_SOURCE_ORGS} or region == "hong kong":
         return "Local"
     return "Non-local"
 
 
 def render_source_localities(sources: list) -> None:
     """Show only Local / Non-local, in that order, without org names."""
+    sources = filter_citation_sources(sources)
+    if not sources:
+        return
     labels = []
     for source in sources:
         label = source_locality(source)
@@ -263,12 +271,17 @@ def render_header():
         <p>Hong Kong Children's Hospital - Interventional Radiology Information Assistant</p>
     </div>
     """, unsafe_allow_html=True)
+    st.caption(
+        "This public demo only uses original educational leaflets plus "
+        f"allowlisted source orgs **{live_orgs_csv()}**. "
+        "It does not include SickKids, SIR, or other crawled "
+        "hospital/society corpora (third-party terms and copyright)."
+    )
     if is_cloud_demo():
         st.caption(
             "Cloud test: the same Agentic RAG graph as the local stack, with "
             "OpenRouter **free** chat and embedding models as a stand-in for a "
-            "hospital GPU box. Answers come from the bundled demo leaflets, "
-            "not the full local knowledge base."
+            "hospital GPU box."
         )
 
 
@@ -669,7 +682,7 @@ def main():
                 progress_tracker.complete()
                 
                 response = result["response"]
-                sources = result.get("sources", [])
+                sources = filter_citation_sources(result.get("sources", []))
                 safety = result.get("safety_assessment")
                 was_decomposed = result.get("was_decomposed", False)
                 sub_query_count = result.get("sub_query_count", 0)
