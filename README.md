@@ -9,7 +9,7 @@
 
 CIRSE 2026 oral (SPHAIRE): *Beyond Information Leaflets: Development of an Interactive AI Chatbot for Patient and Carer Education in Paediatric Interventional Radiology* (Lee, Lam, Fung, Kan; Hong Kong Children’s Hospital / Kwong Wah Hospital).
 
-This repository is the **public, Streamlit-ready slice** of that work: the retrieval–generation design and a small original leaflet pack. It does **not** contain crawled hospital or society corpora.
+This repository is the **public, Streamlit-ready slice** of that work: the retrieval–generation design and a small original leaflet pack. The live demo only uses original educational leaflets plus allowlisted source orgs **HKSIR, HKCH, CIRSE**. It does **not** include SickKids, SIR, or other crawled hospital or society corpora (third-party terms and copyright).
 
 ---
 
@@ -42,10 +42,12 @@ flowchart LR
 
 ### What this public demo contains
 
+The live knowledge base is limited to the four original educational leaflets in `demo_kb/` (tagged **HKCH**) and the public-facing source-org allowlist **HKSIR, HKCH, CIRSE**. Retrieval, citations, Streamlit source listing, and demo ingest all enforce that allowlist.
+
 | Included | Not included |
 | --- | --- |
-| LangGraph agentic RAG (retrieve → grade → rewrite → generate) | Crawled HKCH / HKSIR / CIRSE / SickKids corpora |
-| Four original educational leaflets (`demo_kb/`) | Hospital site-logistics or identifiable patient material |
+| LangGraph agentic RAG (retrieve → grade → rewrite → generate) | SickKids, SIR, or other crawled hospital/society corpora (T&C / copyright) |
+| Four original educational leaflets (`demo_kb/`), tagged HKCH | Hospital site-logistics or identifiable patient material |
 | Streamlit Cloud chat UI | Full evaluation workbooks |
 | Open-weight chat via OpenRouter free endpoints | A claim that the live app is clinically validated |
 
@@ -91,7 +93,7 @@ If the app is asleep, the first visit can take a minute while Streamlit wakes th
 ## What we do not claim
 
 - This demo is not approved for parent-facing clinical use.
-- Answers are only as good as the four public leaflets. If the source is missing, the agent should decline rather than guess an NPO time or a drug dose.
+- Answers are only as good as the bundled original leaflets (allowlisted orgs: HKSIR, HKCH, CIRSE). If the source is missing, the agent should decline rather than guess an NPO time or a drug dose.
 - The radiologist-audit edge is designed, not live here.
 - Society leaflets in a full corpus would still sit **below** the host hospital on conflict.
 
@@ -144,9 +146,10 @@ pedirbot-demo/
 │   ├── agentic_rag.py        # LangGraph: retrieve, grade, rewrite, generate
 │   ├── rag_pipeline.py       # Facade + keyword emergency screen
 │   ├── retriever.py          # Hybrid vector + BM25
+│   ├── source_allowlist.py   # Live source-org allowlist (HKSIR, HKCH, CIRSE)
 │   ├── cloud_bootstrap.py    # Streamlit Cloud secrets, quotas, demo index
 │   └── openrouter_demo_models.py
-├── demo_kb/                  # Original educational leaflets only
+├── demo_kb/                  # Original educational leaflets only (tagged HKCH)
 ├── requirements.txt          # Streamlit Cloud
 ├── runtime.txt               # Hint only — set Python in Streamlit Advanced settings
 └── .streamlit/secrets.toml.example

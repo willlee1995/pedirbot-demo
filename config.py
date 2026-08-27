@@ -1,6 +1,11 @@
 """Configuration management for PedIR RAG Backend."""
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Literal
+from typing import Literal, Tuple
+
+# Public CIRSE demo live knowledge-base allowlist (T&C / copyright).
+# Only these source orgs may be retrieved, cited, listed, or ingested.
+# Hidden orgs (SickKids, SIR, and anything else) are never live sources.
+LIVE_SOURCE_ORGS: Tuple[str, ...] = ("HKSIR", "HKCH", "CIRSE")
 
 
 class Settings(BaseSettings):

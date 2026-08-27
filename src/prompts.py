@@ -1,5 +1,9 @@
 """Centralized prompts and templates for PedIR-Bot."""
 
+from config import LIVE_SOURCE_ORGS
+
+LIVE_ORGS_CSV = ", ".join(LIVE_SOURCE_ORGS)
+
 # --- Retrieval & Grading ---
 
 GRADE_PROMPT = """Is the Document relevant to the Question?
@@ -81,12 +85,13 @@ Output a JSON array of strings, e.g.:
 
 # --- Orchestration & Tool Use ---
 
-RETRIEVAL_STRATEGY_INSTRUCTION = """RETRIEVAL STRATEGY:
+RETRIEVAL_STRATEGY_INSTRUCTION = f"""RETRIEVAL STRATEGY:
 1. **ALWAYS START with `search_kb`** (Semantic Search) to find relevant information by meaning.
-2. **IMPORTANT: When the user mentions a specific organization (HKCH, SickKids, SIR, HKSIR, CIRSE, Hong Kong Children's Hospital), you MUST pass the `source_org` parameter** to `search_kb` to filter results. For example:
+2. **This public demo knowledge base only includes these source organizations: {LIVE_ORGS_CSV}.** When the user mentions one of them (or Hong Kong Children's Hospital for HKCH), you MUST pass the `source_org` parameter to `search_kb` to filter results. For example:
    - "HKCH fasting guidelines" -> search_kb(query="fasting guidelines", source_org="HKCH")
-   - "What does SickKids say about PICC?" -> search_kb(query="PICC", source_org="SickKids")
+   - "What does CIRSE say about PICC?" -> search_kb(query="PICC", source_org="CIRSE")
    - "HKCH biopsy" -> search_kb(query="biopsy", source_org="HKCH")
+   Do not search or cite any other organization.
 3. **When the user mentions a region**, pass the `region` parameter:
    - "Hong Kong guidelines" -> search_kb(query="guidelines", region="Hong Kong")
 4. If `search_kb` results are good but cut off, use `get_document_by_id` with the ID from metadata to get full context.
@@ -100,7 +105,7 @@ AVAILABLE TOOLS:
 
 INSTRUCTION: For ANY user question, you MUST call `search_kb` to search the knowledge base FIRST.
 You are NOT allowed to say "I don't have information" or answer directly.
-When user mentions an organization (HKCH, SickKids, SIR, HKSIR, CIRSE), include source_org in arguments.
+When user mentions an organization (__LIVE_ORGS__), include source_org in arguments.
 
 OUTPUT FORMAT (MANDATORY):
 ```json
@@ -137,7 +142,7 @@ Example 2: "HKCH fasting guidelines" ->
 }}
 ```
 
-NOW, call the search_kb tool for this question:"""
+NOW, call the search_kb tool for this question:""".replace("__LIVE_ORGS__", LIVE_ORGS_CSV)
 
 # --- Generation & Review ---
 

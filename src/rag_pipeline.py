@@ -13,6 +13,7 @@ from src.vector_store import VectorStore
 from src.retriever import AdvancedRetriever
 from src.safety_guard import SafetyGuard, SafetyAssessment, RiskLevel
 from src.llm import get_llm_provider
+from src.source_allowlist import filter_citation_sources
 from config import settings
 
 
@@ -439,6 +440,8 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                                     'score': 0.0,
                                     'content': content[:200] + '...' if len(content) > 200 else content
                                 })
+
+                sources = filter_citation_sources(sources)
 
             # Parse structured output if available
             try:

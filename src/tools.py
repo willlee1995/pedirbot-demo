@@ -7,6 +7,10 @@ from loguru import logger
 
 from src.vector_store import VectorStore
 from src.retriever import AdvancedRetriever
+from src.source_allowlist import (
+    filter_retrieval_hits,
+    plan_live_search,
+)
 from config import settings
 
 # Try to import create_retriever_tool from langchain_classic (LangChain 1.0 pattern)
@@ -33,7 +37,7 @@ def search_knowledge_base(
     Args:
         query: The search query
         top_k: Number of results to return (default: 5)
-        source_org: Optional filter by source organization (HKCH, SickKids, SIR, HKSIR, CIRSE)
+        source_org: Optional filter by source organization (HKSIR, HKCH, CIRSE)
         procedure_type: Optional filter by procedure type
         region: Optional filter by region ('Hong Kong' or 'Non-Hong Kong')
         procedure_category: Optional filter by procedure category ('Venous Access', 'Angiogram Related', 'Embolization Related', 'Biopsy Related', 'Pain Injection Relief Related', 'Other')
@@ -46,23 +50,23 @@ def search_knowledge_base(
     # This will be injected by the agent setup
     vector_store: Optional[VectorStore] = None
 
-    # Build filter dict
-    filter_dict = {}
-    if source_org:
-        filter_dict['source_org'] = source_org
-    if procedure_type:
-        filter_dict['procedure_type'] = procedure_type
-    if region:
-        filter_dict['region'] = region
-    if procedure_category:
-        filter_dict['procedure_category'] = procedure_category
+    search_plan = plan_live_search({
+        'source_org': source_org,
+        'procedure_type': procedure_type,
+        'region': region,
+        'procedure_category': procedure_category,
+    })
+    if not search_plan.allowed:
+        return "No relevant information found in the knowledge base."
+    filter_dict = search_plan.filter_dict
 
     # Perform search
     results = vector_store.similarity_search(
         query=query,
         k=top_k,
-        filter_dict=filter_dict if filter_dict else None
+        filter_dict=filter_dict
     )
+    results = filter_retrieval_hits(results)
 
     if not results:
         return "No relevant information found in the knowledge base."
@@ -108,24 +112,29 @@ def search_by_metadata(
 
     Args:
         query: The search query
-        source_org: Source organization to filter by (HKCH, SickKids, SIR, HKSIR, CIRSE)
+        source_org: Source organization to filter by (HKSIR, HKCH, CIRSE)
         top_k: Number of results to return
 
     Returns:
         Formatted string with retrieved documents from the specified source
     """
-    logger.info(f"Searching {source_org} knowledge base for: {query[:100]}...")
+    logger.info(f"Searching knowledge base for: {query[:100]}...")
 
     vector_store: Optional[VectorStore] = None
+
+    search_plan = plan_live_search({'source_org': source_org})
+    if not search_plan.allowed:
+        return "No relevant information found in the knowledge base."
 
     results = vector_store.similarity_search(
         query=query,
         k=top_k,
-        filter_dict={'source_org': source_org}
+        filter_dict=search_plan.filter_dict
     )
+    results = filter_retrieval_hits(results)
 
     if not results:
-        return f"No relevant information found from {source_org}."
+        return "No relevant information found in the knowledge base."
 
     formatted_results = []
     for i, result in enumerate(results, 1):
@@ -190,25 +199,21 @@ def get_knowledge_base_tools(vector_store: VectorStore, retriever: Optional[Adva
             Args:
                 query: The search query text
                 top_k: Number of results to return (default: 5)
-                source_org: Optional filter by source organization
+                source_org: Optional filter by source organization (HKSIR, HKCH, CIRSE)
                 region: Optional filter by region
                 procedure_category: Optional filter by procedure category
             """
             logger.info(f"🔍 Searching knowledge base with query: {query[:100]}...")
 
-            # Build filter dict for metadata filtering
-            filter_dict = {}
-            if source_org:
-                filter_dict['source_org'] = source_org
-                logger.info(f"📋 Filter by Source Org: {source_org}")
-            if region:
-                filter_dict['region'] = region
-                logger.info(f"🌍 Filter by Region: {region}")
-            if procedure_category:
-                filter_dict['procedure_category'] = procedure_category
-                logger.info(f"🏷️  Filter by Procedure Category: {procedure_category}")
-
-            filter_dict = filter_dict if filter_dict else None
+            search_plan = plan_live_search({
+                'source_org': source_org,
+                'region': region,
+                'procedure_category': procedure_category,
+            })
+            if not search_plan.allowed:
+                logger.info("Rejected search_kb filter for a source org outside the live allowlist")
+                return "No relevant information found in the knowledge base."
+            filter_dict = search_plan.filter_dict
             if filter_dict:
                 logger.info(f"📋 Active Filters: {filter_dict}")
 
@@ -220,6 +225,7 @@ def get_knowledge_base_tools(vector_store: VectorStore, retriever: Optional[Adva
                 logger.exception(e)
                 return "Error searching the knowledge base. Please try again."
 
+            results = filter_retrieval_hits(results)
             if not results:
                 return "No relevant information found in the knowledge base."
 

@@ -9,6 +9,12 @@ import markdown
 from bs4 import BeautifulSoup
 from loguru import logger
 
+from src.source_allowlist import (
+    DEMO_LEAFLET_SOURCE_ORG,
+    ensure_live_ingest_metadata,
+    is_demo_kb_path,
+)
+
 try:
     from markitdown import MarkItDown
 except ImportError:
@@ -272,8 +278,8 @@ class DocumentProcessor:
         """Detect source organization from file path or name."""
         path_lower = file_path.lower()
 
-        if 'hkch' in path_lower or 'demo_kb' in path_lower:
-            return 'HKCH'
+        if 'hkch' in path_lower or is_demo_kb_path(file_path):
+            return DEMO_LEAFLET_SOURCE_ORG
         elif 'sickkids' in path_lower or 'sick_kids' in path_lower:
             return 'SickKids'
         elif 'hksir' in path_lower:
@@ -676,6 +682,17 @@ class DocumentProcessor:
             try:
                 logger.info(f"Processing: {file_path}")
                 text, metadata = self.load_document(str(file_path))
+                if not text:
+                    continue
+
+                live_meta = ensure_live_ingest_metadata(metadata)
+                if live_meta is None:
+                    logger.warning(
+                        f"Skipping {file_path.name}: source org is not on the "
+                        "public demo allowlist (HKSIR, HKCH, CIRSE)"
+                    )
+                    continue
+                metadata = live_meta
 
                 # Classify procedure category based on content
                 # We need the text content for classification
