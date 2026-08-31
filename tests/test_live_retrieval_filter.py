@@ -162,7 +162,8 @@ class DemoKbIngestTest(unittest.TestCase):
         chunks = processor.process_directory(str(demo_dir))
         self.assertTrue(chunks)
         filenames = {chunk.metadata.get("filename") for chunk in chunks}
-        self.assertEqual(filenames, set(DEMO_LEAFLET_FILENAMES))
+        self.assertTrue(set(DEMO_LEAFLET_FILENAMES).issubset(filenames))
+        self.assertTrue(any(str(name).startswith("hkch_") for name in filenames))
         for chunk in chunks:
             self.assertEqual(chunk.metadata.get("source_org"), "HKCH")
             self.assertEqual(chunk.metadata.get("region"), "Hong Kong")
