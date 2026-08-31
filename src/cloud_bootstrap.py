@@ -7,6 +7,8 @@ from datetime import date
 from pathlib import Path
 from typing import List, Tuple
 
+from loguru import logger
+
 from src.document_processor import DocumentProcessor
 from src.source_allowlist import filter_live_chunks
 
@@ -18,7 +20,7 @@ CLOUD_DEFAULTS = {
     "USE_RERANKER": "false",
     "LANGSMITH_TRACING": "false",
     "CHROMA_PERSIST_DIRECTORY": "./chroma_db",
-    "COLLECTION_NAME": "pedir_demo_nemotron_embed_v3",
+    "COLLECTION_NAME": "pedir_demo_nemotron_embed_v4",
     "AGENT_MAX_ITERATIONS": "2",
     "TOP_K_RETRIEVAL": "4",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
@@ -116,17 +118,55 @@ def missing_cloud_credentials() -> List[str]:
     return missing
 
 
+def _demo_markdown_filenames() -> set[str]:
+    """Basenames of bundled demo leaflets."""
+    names: set[str] = set()
+    for path in DEMO_SOURCE_DIRS:
+        if path.is_dir():
+            names.update(item.name for item in path.rglob("*.md"))
+    return names
+
+
+def _indexed_filenames(vector_store) -> set[str]:
+    """Unique filenames already stored in the demo collection."""
+    try:
+        data = vector_store.collection.get(include=["metadatas"])
+    except Exception as exc:
+        logger.warning(f"Could not list demo collection metadata: {exc}")
+        return set()
+    names: set[str] = set()
+    for meta in data.get("metadatas") or []:
+        if isinstance(meta, dict) and meta.get("filename"):
+            names.add(str(meta["filename"]))
+    return names
+
+
 def ensure_demo_knowledge_base(
     vector_store,
     chunk_size: int,
     chunk_overlap: int,
 ) -> int:
-    """Ingest bundled demo markdown when the Chroma collection is empty."""
+    """Ingest bundled demo markdown when the collection is empty or stale."""
     if not is_cloud_demo():
         return 0
     stats = vector_store.get_stats()
-    if stats.get("total_documents", 0) > 0:
+    expected = _demo_markdown_filenames()
+    indexed = _indexed_filenames(vector_store)
+    missing = expected - indexed
+    logger.info(
+        f"Demo KB collection={stats.get('collection_name')} "
+        f"docs={stats.get('total_documents', 0)} "
+        f"indexed_files={len(indexed)} expected_files={len(expected)} "
+        f"missing={sorted(missing)}"
+    )
+    if stats.get("total_documents", 0) > 0 and not missing:
         return 0
+    if missing and stats.get("total_documents", 0) > 0:
+        logger.warning(
+            f"Demo index missing {len(missing)} leaflets; "
+            f"resetting {stats.get('collection_name')}"
+        )
+        vector_store.reset_collection()
 
     processor = DocumentProcessor(
         chunk_size=chunk_size,

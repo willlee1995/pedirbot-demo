@@ -22,6 +22,7 @@ from src.vector_store import VectorStore
 from src.guardrails import EmergencyGuardrailMiddleware, SafetyCheckGuardrail, EMERGENCY_RESPONSE
 from config import settings
 from src import prompts
+from src.text_cleanup import strip_model_reasoning
 
 try:
     from src.sql_tools import get_sql_tools
@@ -849,12 +850,10 @@ def create_agentic_rag_graph(
             # Try to force it into our JSON format if the LLM didn't return JSON naturally
             parsed_json = _extract_json(response_content)
 
-            # Strip thinking tags out of the raw response in case we have to fall back to it
-            clean_response = re.sub(r'<unused94>thought.*?<unused95>', '', response_content, flags=re.DOTALL)
-            clean_response = clean_response.replace('<unused94>', '').replace('<unused95>', '').strip()
+            clean_response = strip_model_reasoning(response_content)
 
             if parsed_json and "answer" in parsed_json:
-                final_answer = parsed_json["answer"]
+                final_answer = strip_model_reasoning(str(parsed_json["answer"]))
                 logger.info(f"⚠️ DEBUG fallback: extracted answer from JSON, length={len(final_answer)}")
             else:
                 final_answer = clean_response

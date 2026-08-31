@@ -9,6 +9,7 @@ from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, System
 from loguru import logger
 
 from src.agentic_rag import create_agentic_rag_graph
+from src.text_cleanup import strip_model_reasoning
 from src.vector_store import VectorStore
 from src.retriever import AdvancedRetriever
 from src.safety_guard import SafetyGuard, SafetyAssessment, RiskLevel
@@ -373,19 +374,6 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
             else:
                 logger.warning(f"⚠️ DEBUG: No AIMessage found in {len(messages)} messages. Types: {[type(m).__name__ for m in messages]}")
 
-            # Strip thinking tokens if present
-            if response_text:
-                original_len = len(response_text)
-                # Pattern to match <unused94>thought...<unused95> or similar thinking blocks
-                # We use DOTALL so the `.` matches newlines as well
-                response_text = re.sub(r'<unused94>thought.*?<unused95>', '', response_text, flags=re.DOTALL)
-                # Also strip just <unused94> and <unused95> in case they appear isolated
-                response_text = response_text.replace('<unused94>', '').replace('<unused95>', '')
-                response_text = response_text.strip()
-                if not response_text and original_len > 0:
-                    logger.warning(f"⚠️ DEBUG: response_text became EMPTY after stripping think tokens (was {original_len} chars)")
-
-
             # Extract sources from tool messages
             if include_sources:
                 for msg in messages:
@@ -450,7 +438,7 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
 
                 # If successful, use the 'answer' field as the main response
                 if isinstance(structured_data, dict) and 'answer' in structured_data:
-                    parsed_answer = structured_data['answer']
+                    parsed_answer = strip_model_reasoning(str(structured_data['answer'] or ""))
                     if not parsed_answer:
                         logger.warning(f"⚠️ DEBUG: JSON parsed OK but 'answer' field is EMPTY. Full JSON keys: {list(structured_data.keys())}")
                         logger.warning(f"⚠️ DEBUG: confidence={structured_data.get('confidence')}, sources={structured_data.get('sources')}, reasoning={str(structured_data.get('reasoning', ''))[:200]}")
@@ -467,9 +455,9 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                 else:
                     logger.warning(f"⚠️ DEBUG: JSON parsed but no 'answer' key. Keys: {list(structured_data.keys()) if isinstance(structured_data, dict) else type(structured_data).__name__}")
             except json.JSONDecodeError:
-                # Not JSON, treat as raw text
+                # Not JSON, treat as raw text after stripping any thinking preamble
                 logger.debug(f"Response is not JSON, treating as raw text (length: {len(response_text)})")
-                pass
+                response_text = strip_model_reasoning(response_text)
             except Exception as e:
                 logger.warning(f"Error parsing structured output: {e}")
 
