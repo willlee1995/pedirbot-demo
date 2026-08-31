@@ -42,16 +42,16 @@ flowchart LR
 
 ### What this public demo contains
 
-The live knowledge base is limited to the four original educational leaflets in `demo_kb/` (tagged **HKCH**) and the public-facing source-org allowlist **HKSIR, HKCH, CIRSE**. Retrieval, citations, Streamlit source listing, and demo ingest all enforce that allowlist.
+The live knowledge base is limited to the bundled leaflets in `demo_kb/` (tagged **HKCH**) and the public-facing source-org allowlist **HKSIR, HKCH, CIRSE**. Retrieval, citations, Streamlit source listing, and demo ingest all enforce that allowlist.
 
 | Included | Not included |
 | --- | --- |
 | LangGraph agentic RAG (retrieve → grade → rewrite → generate) | SickKids, SIR, or other crawled hospital/society corpora (T&C / copyright) |
-| Four original educational leaflets (`demo_kb/`), tagged HKCH | Hospital site-logistics or identifiable patient material |
+| Overview leaflets plus official HKCH IR Clinic education sheets (`demo_kb/`), tagged HKCH | Hospital site-logistics or identifiable patient material |
 | Streamlit Cloud chat UI | Full evaluation workbooks |
 | Open-weight chat via OpenRouter free endpoints | A claim that the live app is clinically validated |
 
-The study evaluation used a larger, institution-first corpus that stays in a private research repository. Here you can inspect the **architecture** and try the **same control graph** on a tiny public pack (what paediatric IR is, PICC, fasting, embolization aftercare).
+The study evaluation used a larger, institution-first corpus that stays in a private research repository. Here you can inspect the **architecture** and try the **same control graph** on the public pack: short overviews plus HKCH-authored IR Clinic leaflets (biopsy, PICC/central lines, angiogram, sclerotherapy, Botox, and steroid injection; English and Chinese).
 
 ### Pilot evaluation (official raw scores)
 
@@ -78,9 +78,10 @@ Overall differences: Wilcoxon signed-rank, *p* < .001. English relevance and com
 Example questions the public leaflets can support:
 
 - What is paediatric interventional radiology?
-- Why might a child need a PICC line?
+- Why might a child need a PICC line, and how is the dressing kept dry?
 - What should families know about fasting before an IR procedure?
-- What is embolization, in plain language?
+- What happens after a kidney biopsy, and when should we seek help?
+- What is sclerotherapy, in plain language?
 
 The sidebar lets you switch among **open-weight** chat models served on OpenRouter’s free endpoints (default: NVIDIA Nemotron 3.5 Lightning). Embeddings use OpenRouter’s free `nvidia/nemotron-3-embed-1b:free` (same API key). That is a stand-in for a hospital GPU box — Streamlit Cloud cannot host Ollama. Each tester is capped (5 questions per session, 40 per day).
 
@@ -149,7 +150,7 @@ pedirbot-demo/
 │   ├── source_allowlist.py   # Live source-org allowlist (HKSIR, HKCH, CIRSE)
 │   ├── cloud_bootstrap.py    # Streamlit Cloud secrets, quotas, demo index
 │   └── openrouter_demo_models.py
-├── demo_kb/                  # Original educational leaflets only (tagged HKCH)
+├── demo_kb/                  # Overview + official HKCH IR Clinic leaflets (tagged HKCH)
 ├── requirements.txt          # Streamlit Cloud
 ├── runtime.txt               # Hint only — set Python in Streamlit Advanced settings
 └── .streamlit/secrets.toml.example
