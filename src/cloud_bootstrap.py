@@ -20,7 +20,7 @@ CLOUD_DEFAULTS = {
     "USE_RERANKER": "false",
     "LANGSMITH_TRACING": "false",
     "CHROMA_PERSIST_DIRECTORY": "./chroma_db",
-    "COLLECTION_NAME": "pedir_demo_nemotron_embed_v4",
+    "COLLECTION_NAME": "pedir_demo_nemotron_embed_v5",
     "AGENT_MAX_ITERATIONS": "2",
     "TOP_K_RETRIEVAL": "4",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",

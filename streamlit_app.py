@@ -66,6 +66,7 @@ for _import_attempt in range(2):
         from src.llm import get_langchain_llm
         from src.retriever import AdvancedRetriever
         from src.vector_store import VectorStore
+        from src.embed_limits import chunk_size_for_embedding_model
         from src.embeddings import get_embedding_model
         from src.conversation_memory import ConversationMemory
         from src.openrouter_demo_models import (
@@ -188,10 +189,17 @@ def init_vector_store():
     """Load embeddings and the demo index once (not per chat model)."""
     embedding_model = get_embedding_model()
     vector_store = VectorStore(embedding_model)
+    embed_model_name = (
+        settings.openrouter_embedding_model
+        if settings.embedding_provider == "openrouter"
+        else settings.openai_embedding_model
+    )
     demo_chunks = ensure_demo_knowledge_base(
         vector_store,
-        chunk_size=settings.max_chunk_size,
-        chunk_overlap=settings.chunk_overlap,
+        chunk_size=chunk_size_for_embedding_model(
+            embed_model_name, settings.max_chunk_size
+        ),
+        chunk_overlap=min(settings.chunk_overlap, 80),
     )
     stats = vector_store.get_stats()
     stats["demo_chunks_added"] = demo_chunks

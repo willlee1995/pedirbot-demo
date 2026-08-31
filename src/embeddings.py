@@ -14,6 +14,7 @@ from tenacity import (
 )
 
 from config import settings
+from src.embed_limits import fit_text_to_embed_limit
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -117,9 +118,15 @@ class OpenAIEmbeddings(EmbeddingModel):
         cleaned = [text for text in texts if (text or "").strip()]
         if not cleaned:
             raise ValueError("No non-empty texts to embed.")
+        fitted = [fit_text_to_embed_limit(text, self.model) for text in cleaned]
+        if any(len(fitted[i]) < len(cleaned[i]) for i in range(len(cleaned))):
+            logger.warning(
+                f"Truncated embedding input for {self.model} "
+                f"to stay under the model token limit"
+            )
         create_kwargs = {
             "model": self.model,
-            "input": cleaned,
+            "input": fitted,
             "encoding_format": "float",
         }
         extra_body = {}

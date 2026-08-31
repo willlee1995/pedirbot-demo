@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     openrouter_chat_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_metadata_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_embedding_model: str = "nvidia/nemotron-3-embed-1b:free"
-    collection_name: str = "pedir_demo_nemotron_embed_v4"
+    collection_name: str = "pedir_demo_nemotron_embed_v5"
 
     # Hugging Face Inference Endpoint Configuration
     hf_api_key: str = ""
