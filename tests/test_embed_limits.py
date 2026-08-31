@@ -17,6 +17,10 @@ class EmbedLimitsTest(unittest.TestCase):
             embedding_token_limit("liquid/lfm-2.5-embedding-350m:free"),
             512,
         )
+        self.assertEqual(
+            embedding_token_limit("liquid/lfm-2.5-embedding-350m🆓"),
+            512,
+        )
         self.assertIsNone(embedding_token_limit("nvidia/nemotron-3-embed-1b:free"))
 
     def test_cjk_is_about_one_token_per_char(self):
@@ -26,7 +30,7 @@ class EmbedLimitsTest(unittest.TestCase):
     def test_fit_keeps_liquid_input_under_cap(self):
         text = "腎臟活組織檢查後需要臥床觀察六小時。" * 80
         fitted = fit_text_to_embed_limit(text, "liquid/lfm-2.5-embedding-350m:free")
-        self.assertLessEqual(estimate_embed_tokens(fitted), 512)
+        self.assertLessEqual(estimate_embed_tokens(fitted), 400)
         self.assertLess(len(fitted), len(text))
 
     def test_chunk_size_is_cjk_safe_for_liquid(self):
@@ -34,5 +38,4 @@ class EmbedLimitsTest(unittest.TestCase):
             "liquid/lfm-2.5-embedding-350m:free",
             default_chunk_size=1500,
         )
-        self.assertLessEqual(size, 512)
-        self.assertGreaterEqual(size, 256)
+        self.assertEqual(size, 400)

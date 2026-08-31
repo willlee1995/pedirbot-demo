@@ -104,6 +104,7 @@ class OpenAIEmbeddings(EmbeddingModel):
         self,
         texts: List[str],
         input_type: str = "passage",
+        _shrink: int = 0,
     ) -> List[List[float]]:
         """
         Embed a list of documents with retry logic.
@@ -145,6 +146,16 @@ class OpenAIEmbeddings(EmbeddingModel):
             return embeddings
         except BadRequestError as e:
             detail = getattr(e, "body", None) or getattr(e, "message", None) or e
+            over_limit = "exceeding the model maximum" in str(detail).lower()
+            if over_limit and _shrink < 3:
+                shorter = [text[: max(64, int(len(text) * 0.7))] for text in fitted]
+                logger.warning(
+                    f"Embedding over token cap on {self.model}; "
+                    f"retrying with shorter inputs (pass {_shrink + 1})"
+                )
+                return self.embed_documents(
+                    shorter, input_type=input_type, _shrink=_shrink + 1
+                )
             logger.error(f"Embedding request rejected: {detail}")
             raise ValueError(
                 f"Embedding request rejected by {self.model}: {detail}"
