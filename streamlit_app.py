@@ -82,6 +82,10 @@ for _import_attempt in range(2):
             filter_citation_sources,
             live_orgs_csv,
         )
+        from src.demo_sample_questions import (
+            educational_samples,
+            guardrail_samples,
+        )
         break
     except KeyError:
         _clear_src_modules()
@@ -269,6 +273,46 @@ def init_session_state():
         st.session_state.demo_queries_used = 0
     if "demo_unlocked" not in st.session_state:
         st.session_state.demo_unlocked = False
+    if "pending_prompt" not in st.session_state:
+        st.session_state.pending_prompt = None
+
+
+def render_sample_questions(*, disabled: bool) -> None:
+    """Clickable chips that queue a full testing prompt into the chat path."""
+    st.markdown("##### Try a sample question")
+    st.caption(
+        "Click to send. Guardrail chips use emergency wording so you can "
+        "demo the 999 / A&E redirect without typing."
+    )
+
+    edu = educational_samples()
+    guard = guardrail_samples()
+
+    edu_cols = st.columns(min(3, len(edu)) or 1)
+    for i, sample in enumerate(edu):
+        if edu_cols[i % len(edu_cols)].button(
+            sample["label"],
+            key=f"sample_edu_{i}",
+            disabled=disabled,
+            use_container_width=True,
+            help=sample["prompt"],
+        ):
+            st.session_state.pending_prompt = sample["prompt"]
+            st.rerun()
+
+    st.caption("Guardrail demos")
+    guard_cols = st.columns(min(2, len(guard)) or 1)
+    for i, sample in enumerate(guard):
+        if guard_cols[i % len(guard_cols)].button(
+            sample["label"],
+            key=f"sample_guard_{i}",
+            disabled=disabled,
+            use_container_width=True,
+            help=sample["prompt"],
+            type="secondary",
+        ):
+            st.session_state.pending_prompt = sample["prompt"]
+            st.rerun()
 
 
 def render_header():
@@ -281,9 +325,7 @@ def render_header():
     """, unsafe_allow_html=True)
     st.caption(
         "This public demo only uses original educational leaflets plus "
-        f"allowlisted source orgs **{live_orgs_csv()}**. "
-        "It does not include SickKids, SIR, or other crawled "
-        "hospital/society corpora (third-party terms and copyright)."
+        f"allowlisted source orgs **{live_orgs_csv()}**."
     )
     if is_cloud_demo():
         st.caption(
@@ -440,6 +482,7 @@ def render_sidebar(stats, chat_model: str):
         if st.button("🗑️ Clear Chat", use_container_width=True):
             st.session_state.messages = []
             st.session_state.memory.clear()
+            st.session_state.pending_prompt = None
             st.rerun()
         
         st.divider()
@@ -623,11 +666,11 @@ def main():
         st.stop()
 
     render_sidebar(stats, chat_model)
-    
+
     # Display chat history
     for message in st.session_state.messages:
         render_message(message)
-    
+
     # Chat input
     quota_error = ""
     if is_cloud_demo():
@@ -636,10 +679,18 @@ def main():
             st.warning(quota_error)
 
     chat_disabled = bool(quota_error)
-    if prompt := st.chat_input(
-        "Ask about interventional radiology procedures...",
-        disabled=chat_disabled,
-    ):
+    render_sample_questions(disabled=chat_disabled)
+
+    prompt = st.session_state.pending_prompt
+    if prompt:
+        st.session_state.pending_prompt = None
+    else:
+        prompt = st.chat_input(
+            "Ask about interventional radiology procedures...",
+            disabled=chat_disabled,
+        )
+
+    if prompt:
         blocked = check_demo_query(prompt, st.session_state.demo_queries_used)
         if blocked:
             st.session_state.messages.append({"role": "user", "content": prompt})
@@ -656,46 +707,45 @@ def main():
         # Add user message
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.memory.add_user_message(prompt)
-        
+
         # Display user message
         with st.chat_message("user"):
             st.markdown(prompt)
-        
+
         # Check for follow-up and enhance query
         enhanced_prompt = prompt
         if st.session_state.memory.is_follow_up_question(prompt):
             enhanced_prompt = st.session_state.memory.enhance_query_with_context(prompt)
-        
+
         # Generate response with progress tracking
         with st.chat_message("assistant"):
             # Create progress container
             progress_container = st.container()
-            response_container = st.empty()
-            
+
             # Initialize progress tracker
             progress_tracker = ProgressTracker(
-                progress_container, 
+                progress_container,
                 show_steps=st.session_state.show_steps
             )
-            
+
             try:
                 # Process query with progress
                 result = process_query(
-                    rag_pipeline, 
-                    enhanced_prompt, 
+                    rag_pipeline,
+                    enhanced_prompt,
                     progress_tracker
                 )
-                
+
                 # Clear progress indicators
                 progress_tracker.complete()
-                
+
                 response = result["response"]
                 sources = filter_citation_sources(result.get("sources", []))
                 safety = result.get("safety_assessment")
                 was_decomposed = result.get("was_decomposed", False)
                 sub_query_count = result.get("sub_query_count", 0)
                 is_error = bool(result.get("error"))
-                
+
                 # Show decomposition badge if applicable
                 if was_decomposed:
                     st.markdown(f"""
@@ -703,12 +753,12 @@ def main():
                         🔀 Combined answer from {sub_query_count} sub-queries
                     </span>
                     """, unsafe_allow_html=True)
-                
+
                 if is_error:
                     st.error(response)
                 else:
                     st.markdown(response)
-                
+
                 # Show safety warning if needed
                 if safety:
                     risk = safety.get("risk_level", "none")
@@ -718,11 +768,11 @@ def main():
                             ⚠️ <strong>Safety Note:</strong> This query was flagged as {risk} risk.
                         </div>
                         """, unsafe_allow_html=True)
-                
+
                 # Show sources
                 if sources and not is_error:
                     render_source_localities(sources)
-                
+
                 # Store in memory and session
                 st.session_state.memory.add_assistant_message(
                     response, sources=sources, safety_info=safety
@@ -736,7 +786,7 @@ def main():
                     "sub_query_count": sub_query_count,
                     "is_error": is_error,
                 })
-                
+
             except Exception as e:
                 progress_tracker.complete()
                 error_text = format_provider_error(e)

@@ -9,7 +9,7 @@
 
 CIRSE 2026 oral (SPHAIRE): *Beyond Information Leaflets: Development of an Interactive AI Chatbot for Patient and Carer Education in Paediatric Interventional Radiology* (Lee, Lam, Fung, Kan; Hong Kong Children’s Hospital / Kwong Wah Hospital).
 
-This repository is the **public, Streamlit-ready slice** of that work: the retrieval–generation design and a small original leaflet pack. The live demo only uses original educational leaflets plus allowlisted source orgs **HKSIR, HKCH, CIRSE**. It does **not** include SickKids, SIR, or other crawled hospital or society corpora (third-party terms and copyright).
+This repository is the **public, Streamlit-ready slice** of that work: the retrieval–generation design and a small original leaflet pack. The live demo only uses original educational leaflets plus allowlisted source orgs **HKSIR, HKCH, CIRSE**.
 
 ---
 
@@ -46,10 +46,9 @@ The live knowledge base is limited to the bundled leaflets in `demo_kb/` (tagged
 
 | Included | Not included |
 | --- | --- |
-| LangGraph agentic RAG (retrieve → grade → rewrite → generate) | SickKids, SIR, or other crawled hospital/society corpora (T&C / copyright) |
+| LangGraph agentic RAG (retrieve → grade → rewrite → generate) | Private research corpus and evaluation workbooks |
 | Overview leaflets plus official HKCH IR Clinic education sheets (`demo_kb/`), tagged HKCH | Hospital site-logistics or identifiable patient material |
-| Streamlit Cloud chat UI | Full evaluation workbooks |
-| Open-weight chat via OpenRouter free endpoints | A claim that the live app is clinically validated |
+| Streamlit Cloud chat UI with OpenRouter free open-weight endpoints | A claim that the live app is clinically validated |
 
 The study evaluation used a larger, institution-first corpus that stays in a private research repository. Here you can inspect the **architecture** and try the **same control graph** on the public pack: short overviews plus HKCH-authored IR Clinic leaflets (biopsy, PICC/central lines, angiogram, sclerotherapy, Botox, and steroid injection; English and Chinese).
 
@@ -75,13 +74,14 @@ Overall differences: Wilcoxon signed-rank, *p* < .001. English relevance and com
 
 [Deploy this repo](https://share.streamlit.io/deploy?repository=willlee1995/pedirbot-demo&branch=main&mainModule=streamlit_app.py) while signed in to Streamlit with GitHub, then paste secrets from [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example). Name the app `pedirbot-demo` so the public URL matches the badge above.
 
-Example questions the public leaflets can support:
+Example questions the public leaflets can support (also available as clickable chips in the chat UI, including a few **guardrail** prompts that trigger the 999 / A&E redirect):
 
 - What is paediatric interventional radiology?
 - Why might a child need a PICC line, and how is the dressing kept dry?
 - What should families know about fasting before an IR procedure?
 - What happens after a kidney biopsy, and when should we seek help?
 - What is sclerotherapy, in plain language?
+- Guardrail demo: heavy bleeding that will not stop / can’t breathe / chest pain
 
 The sidebar lets you switch among **open-weight** chat models served on OpenRouter’s free endpoints (default: NVIDIA Nemotron 3.5 Lightning). Embeddings use OpenRouter’s free `nvidia/nemotron-3-embed-1b:free` (same API key). That is a stand-in for a hospital GPU box — Streamlit Cloud cannot host Ollama. Each tester is capped (5 questions per session, 40 per day).
 
