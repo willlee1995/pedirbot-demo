@@ -60,14 +60,13 @@ class HiddenOrgsNotAdvertisedTest(unittest.TestCase):
         self.assertNotIn("source_org=\"SickKids\"", text)
         self.assertNotIn("SickKids, SIR, HKSIR, CIRSE", text)
 
-    def test_readme_states_allowlist_and_exclusion(self):
+    def test_readme_states_allowlist_without_naming_hidden_orgs(self):
         text = _read("README.md")
         self.assertIn("HKSIR, HKCH, CIRSE", text)
-        self.assertIn("SickKids, SIR", text)
-        self.assertRegex(
-            text,
-            r"does \*\*not\*\* include SickKids, SIR|SickKids, SIR, or other crawled",
-        )
+        self.assertIn("original educational leaflets", text)
+        self.assertNotIn("SickKids", text)
+        self.assertIsNone(_STANDALONE_SIR.search(text))
+        self.assertNotIn("crawled hospital", text)
 
 
 if __name__ == "__main__":

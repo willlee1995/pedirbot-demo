@@ -9,7 +9,7 @@
 
 CIRSE 2026 oral (SPHAIRE): *Beyond Information Leaflets: Development of an Interactive AI Chatbot for Patient and Carer Education in Paediatric Interventional Radiology* (Lee, Lam, Fung, Kan; Hong Kong Children’s Hospital / Kwong Wah Hospital).
 
-This repository is the **public, Streamlit-ready slice** of that work: the retrieval–generation design and a small original leaflet pack. The live demo only uses original educational leaflets plus allowlisted source orgs **HKSIR, HKCH, CIRSE**. It does **not** include SickKids, SIR, or other crawled hospital or society corpora (third-party terms and copyright).
+This repository is the **public, Streamlit-ready slice** of that work: the retrieval–generation design and a small original leaflet pack. The live demo only uses original educational leaflets plus allowlisted source orgs **HKSIR, HKCH, CIRSE**.
 
 ---
 
@@ -46,10 +46,9 @@ The live knowledge base is limited to the bundled leaflets in `demo_kb/` (tagged
 
 | Included | Not included |
 | --- | --- |
-| LangGraph agentic RAG (retrieve → grade → rewrite → generate) | SickKids, SIR, or other crawled hospital/society corpora (T&C / copyright) |
+| LangGraph agentic RAG (retrieve → grade → rewrite → generate) | Private research corpus and evaluation workbooks |
 | Overview leaflets plus official HKCH IR Clinic education sheets (`demo_kb/`), tagged HKCH | Hospital site-logistics or identifiable patient material |
-| Streamlit Cloud chat UI | Full evaluation workbooks |
-| Open-weight chat via OpenRouter free endpoints | A claim that the live app is clinically validated |
+| Streamlit Cloud chat UI with OpenRouter free open-weight endpoints | A claim that the live app is clinically validated |
 
 The study evaluation used a larger, institution-first corpus that stays in a private research repository. Here you can inspect the **architecture** and try the **same control graph** on the public pack: short overviews plus HKCH-authored IR Clinic leaflets (biopsy, PICC/central lines, angiogram, sclerotherapy, Botox, and steroid injection; English and Chinese).
 
