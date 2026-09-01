@@ -51,20 +51,14 @@ class HiddenOrgsNotAdvertisedTest(unittest.TestCase):
             self.assertIsNone(_STANDALONE_SIR.search(doc), name)
             self.assertIn("HKSIR, HKCH, CIRSE", doc, name)
 
-    def test_streamlit_copy_states_allowlist_and_exclusion(self):
+    def test_streamlit_copy_states_allowlist_without_naming_hidden_orgs(self):
         text = _read("streamlit_app.py")
         self.assertIn("live_orgs_csv()", text)
-        self.assertIn("does not include SickKids, SIR", text)
+        self.assertIn("original educational leaflets", text)
+        self.assertNotIn("SickKids", text)
+        self.assertIsNone(_STANDALONE_SIR.search(text))
         self.assertNotIn("source_org=\"SickKids\"", text)
         self.assertNotIn("SickKids, SIR, HKSIR, CIRSE", text)
-        # Hidden orgs appear only in the T&C exclusion caption, not as filter options.
-        for match in re.finditer(r"SickKids|\bSIR\b", text):
-            start = max(0, match.start() - 80)
-            snippet = text[start:match.end() + 80]
-            self.assertTrue(
-                "does not include" in snippet or "not include" in snippet,
-                f"Hidden org named outside T&C exclusion: {snippet!r}",
-            )
 
     def test_readme_states_allowlist_and_exclusion(self):
         text = _read("README.md")

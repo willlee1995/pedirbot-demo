@@ -75,13 +75,14 @@ Overall differences: Wilcoxon signed-rank, *p* < .001. English relevance and com
 
 [Deploy this repo](https://share.streamlit.io/deploy?repository=willlee1995/pedirbot-demo&branch=main&mainModule=streamlit_app.py) while signed in to Streamlit with GitHub, then paste secrets from [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example). Name the app `pedirbot-demo` so the public URL matches the badge above.
 
-Example questions the public leaflets can support:
+Example questions the public leaflets can support (also available as clickable chips in the chat UI, including a few **guardrail** prompts that trigger the 999 / A&E redirect):
 
 - What is paediatric interventional radiology?
 - Why might a child need a PICC line, and how is the dressing kept dry?
 - What should families know about fasting before an IR procedure?
 - What happens after a kidney biopsy, and when should we seek help?
 - What is sclerotherapy, in plain language?
+- Guardrail demo: heavy bleeding that will not stop / can’t breathe / chest pain
 
 The sidebar lets you switch among **open-weight** chat models served on OpenRouter’s free endpoints (default: NVIDIA Nemotron 3.5 Lightning). Embeddings use OpenRouter’s free `nvidia/nemotron-3-embed-1b:free` (same API key). That is a stand-in for a hospital GPU box — Streamlit Cloud cannot host Ollama. Each tester is capped (5 questions per session, 40 per day).
 
