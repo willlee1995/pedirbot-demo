@@ -39,6 +39,10 @@ def _clear_src_modules() -> None:
 
 
 _prepare_import_path()
+# Streamlit Cloud can keep a stale src.openrouter_demo_models in sys.modules
+# after a git pull (old OpenRouterDemoModel has no `.paid`).
+for _stale in ("src.openrouter_demo_models",):
+    sys.modules.pop(_stale, None)
 
 # Page config must be the first Streamlit command.
 st.set_page_config(
@@ -394,13 +398,18 @@ def render_model_picker() -> str:
         )
         model = get_demo_model(selected)
         if model:
+            model_is_paid = bool(
+                getattr(model, "paid", None)
+                if getattr(model, "paid", None) is not None
+                else not str(getattr(model, "id", "")).endswith(":free")
+            )
             score_line = (
                 f"Paid OpenRouter · {model.params}"
-                if model.paid
+                if model_is_paid
                 else f"AA Intelligence Index **{model.aa_index}** · {model.params}"
             )
             link_label = (
-                "OpenRouter (paid)" if model.paid else "OpenRouter free endpoint"
+                "OpenRouter (paid)" if model_is_paid else "OpenRouter free endpoint"
             )
             st.markdown(
                 f"**{model.short_name}** ({model.lab})  \n"
