@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     # Streamlit test default: OpenRouter :free open-weight stand-in for local GPU
     openrouter_chat_model: str = "qwen/qwen3.8-flash"
     openrouter_metadata_model: str = "nvidia/nemotron-3.5-lightning:free"
-    openrouter_embedding_model: str = "nvidia/nemotron-3-embed-1b:free"
-    collection_name: str = "pedir_demo_nemotron_embed_v6"
+    openrouter_embedding_model: str = "openai/text-embedding-3-small"
+    collection_name: str = "pedir_demo_openai_embed_3small_v1"
 
     # Hugging Face Inference Endpoint Configuration
     hf_api_key: str = ""
@@ -78,8 +78,8 @@ class Settings(BaseSettings):
     langsmith_project: str = "pedir-bot"
 
     # LangChain Reranker Configuration
-    use_reranker: bool = False
-    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # Default reranker model
+    use_reranker: bool = True
+    reranker_model: str = "cohere/rerank-4-fast"
     reranker_top_k: int = 10  # Number of documents to rerank (before selecting top_k_reranker)
 
     # Application Settings
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
     # Streamlit Cloud passphrase. Empty locally; Cloud default is set in cloud_bootstrap.
     # Set DEMO_ACCESS_CODE=off in Secrets to disable the lock screen.
     demo_access_code: str = ""
-    max_chunk_size: int = 1500  # Larger chunks for better context preservation
+    max_chunk_size: int = 7500  # Fits text-embedding-3-small 8k window, CJK-safe
     chunk_overlap: int = 200  # More overlap to prevent context fragmentation
     min_relevance_score: float = 0.1  # Minimum similarity score for retrieval
 

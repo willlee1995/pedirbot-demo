@@ -22,6 +22,10 @@ class EmbedLimitsTest(unittest.TestCase):
             512,
         )
         self.assertIsNone(embedding_token_limit("nvidia/nemotron-3-embed-1b:free"))
+        self.assertEqual(
+            embedding_token_limit("openai/text-embedding-3-small"),
+            8192,
+        )
 
     def test_cjk_is_about_one_token_per_char(self):
         text = "腎臟活組織檢查後需要臥床觀察" * 50
@@ -39,3 +43,10 @@ class EmbedLimitsTest(unittest.TestCase):
             default_chunk_size=1500,
         )
         self.assertEqual(size, 400)
+
+    def test_openai_small_uses_8k_budget(self):
+        size = chunk_size_for_embedding_model(
+            "openai/text-embedding-3-small",
+            default_chunk_size=1500,
+        )
+        self.assertEqual(size, 7500)

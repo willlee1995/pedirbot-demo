@@ -83,7 +83,7 @@ Example questions the public leaflets can support (also available as clickable c
 - What is sclerotherapy, in plain language?
 - Guardrail demo: heavy bleeding that will not stop / can’t breathe / chest pain
 
-The sidebar default chat model is paid **Qwen 3.8 Flash** (`qwen/qwen3.8-flash`) so live questions skip the OpenRouter `:free` queue. Free open-weight slugs (Nemotron Lightning, Gemma 4 31B, Nemotron Ultra) stay in the picker. Embeddings stay on OpenRouter’s free `nvidia/nemotron-3-embed-1b:free` (same API key). Each tester is capped (5 questions per session, 40 per day).
+The sidebar default chat model is paid **Qwen 3.8 Flash** (`qwen/qwen3.8-flash`) so live questions skip the OpenRouter `:free` queue. Free open-weight slugs (Nemotron Lightning, Gemma 4 31B, Nemotron Ultra) stay in the picker. Embeddings use OpenRouter `openai/text-embedding-3-small` (8k token input). Retrieval is reranked with `cohere/rerank-4-fast`. Each tester is capped (5 questions per session, 40 per day).
 
 The first screen asks for a **passphrase** (shared by the presenter). That keeps casual visitors from spending embedding credit. Change it with `DEMO_ACCESS_CODE` in Streamlit secrets, or set that secret to `off` to disable the lock.
 
@@ -111,7 +111,7 @@ Streamlit Community Cloud reads a **public** GitHub repository. This repo is tha
 
 Required secrets:
 
-- `OPENROUTER_API_KEY` — free chat **and** free embeddings
+- `OPENROUTER_API_KEY` — paid chat, embeddings, and rerank
 
 Optional: `OPENAI_API_KEY` only if you set `EMBEDDING_PROVIDER = "openai"`. Also set `DEMO_ACCESS_CODE` and the three quota keys in the example file. Use `off` if you want the app open.
 

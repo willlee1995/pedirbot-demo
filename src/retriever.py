@@ -9,6 +9,7 @@ from loguru import logger
 from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
 
+from src.openrouter_reranker import OpenRouterReranker, uses_openrouter_rerank
 from src.vector_store import VectorStore
 from src.source_allowlist import (
     HONG_KONG_LIVE_ORGS,
@@ -383,7 +384,22 @@ class AdvancedRetriever:
         # Setup reranker if enabled (apply directly, not via ContextualCompressionRetriever)
         self.reranker = None
         if self.use_reranker:
-            if QWEN3_RERANKER_AVAILABLE:
+            if uses_openrouter_rerank(self.reranker_model):
+                try:
+                    self.reranker = OpenRouterReranker(
+                        model=self.reranker_model,
+                        api_key=settings.openrouter_api_key,
+                        base_url=settings.openrouter_api_base,
+                        top_n=settings.top_k_reranker,
+                    )
+                    logger.info(
+                        f"OpenRouter reranker {self.reranker_model} "
+                        f"(top_n: {settings.top_k_reranker})"
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to initialize OpenRouter reranker: {e}")
+                    self.use_reranker = False
+            elif QWEN3_RERANKER_AVAILABLE:
                 try:
                     self.reranker = Qwen3Reranker(
                         model_name="Qwen/Qwen3-Reranker-0.6B",
@@ -394,7 +410,7 @@ class AdvancedRetriever:
                     logger.warning(f"Failed to initialize Qwen3 Reranker: {e}")
                     self.use_reranker = False
             else:
-                logger.warning("Qwen3Reranker not available, disabling reranking")
+                logger.warning("No reranker available, disabling reranking")
                 self.use_reranker = False
 
         logger.info(f"Initialized AdvancedRetriever (reranker: {self.use_reranker}, hybrid_bm25: {self.use_hybrid_search})")
