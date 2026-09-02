@@ -82,9 +82,9 @@ for _import_attempt in range(2):
         )
         from config import settings
         from src.source_allowlist import (
-            HONG_KONG_LIVE_ORGS,
             filter_citation_sources,
             live_orgs_csv,
+            unique_source_titles,
         )
         from src.demo_sample_questions import (
             caution_samples,
@@ -233,35 +233,18 @@ def init_rag_system(chat_model: str):
     return rag_pipeline, stats
 
 
-_LOCAL_SOURCE_ORGS = HONG_KONG_LIVE_ORGS
-
-
-def source_locality(source: dict) -> str:
-    """HKCH and HKSIR are local; every other leaflet is non-local."""
-    org = str(source.get("source_org") or "").strip().upper()
-    region = str(source.get("region") or "").strip().lower()
-    if org in {item.upper() for item in _LOCAL_SOURCE_ORGS} or region == "hong kong":
-        return "Local"
-    return "Non-local"
-
-
 def render_source_localities(sources: list) -> None:
-    """Show only Local / Non-local, in that order, without org names."""
+    """Show retrieved leaflet titles under the answer."""
     sources = filter_citation_sources(sources)
-    if not sources:
+    titles = unique_source_titles(sources)
+    if not titles:
         return
-    labels = []
-    for source in sources:
-        label = source_locality(source)
-        if label not in labels:
-            labels.append(label)
-    labels.sort(key=lambda item: 0 if item == "Local" else 1)
     with st.expander(
-        f"📚 Sources ({len(labels)})",
+        f"📚 Sources ({len(titles)})",
         expanded=st.session_state.show_sources,
     ):
-        for label in labels:
-            st.markdown(f"**{label}**")
+        for title in titles:
+            st.markdown(f"- {title}")
 
 
 def init_session_state():
