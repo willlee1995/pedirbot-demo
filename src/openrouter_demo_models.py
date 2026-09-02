@@ -100,6 +100,15 @@ AA_INDEX_NOTE = (
 )
 
 
+def is_paid_demo_model(model: object) -> bool:
+    """True for paid catalog rows. Works if a stale Cloud class lacks `.paid`."""
+    flagged = getattr(model, "paid", None)
+    if flagged is not None:
+        return bool(flagged)
+    model_id = getattr(model, "id", "") or ""
+    return bool(model_id) and not str(model_id).endswith(":free")
+
+
 def get_demo_model(model_id: str) -> Optional[OpenRouterDemoModel]:
     """Return the catalog entry for an OpenRouter model id, if present."""
     for model in OPENROUTER_DEMO_MODELS:
@@ -125,6 +134,6 @@ def demo_model_label(model_id: str) -> str:
     if model is None:
         return model_id
     fit = model.local_fit.split("—")[0].strip()
-    if model.paid:
+    if is_paid_demo_model(model):
         return f"{model.short_name}  ·  paid  ·  {fit}"
     return f"{model.short_name}  ·  AA {model.aa_index}  ·  {fit}"
