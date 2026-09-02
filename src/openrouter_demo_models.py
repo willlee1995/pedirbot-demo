@@ -1,9 +1,7 @@
-"""OpenRouter free open-weight models for the Streamlit Agentic RAG demo.
+"""OpenRouter chat models for the Streamlit Agentic RAG demo.
 
-Selected from the live OpenRouter :free catalog (25 Aug 2026) using
-Artificial Analysis Intelligence Index v4.1.1. These are open-weight
-models that can be self-hosted; the Cloud demo calls the hosted free
-endpoint as a stand-in for a local hospital GPU box.
+CIRSE live default is paid Qwen 3.8 Flash (no public :free queue).
+Free open-weight slugs stay in the picker as a hospital-GPU stand-in.
 """
 from dataclasses import dataclass
 from typing import List, Optional
@@ -11,7 +9,7 @@ from typing import List, Optional
 
 @dataclass(frozen=True)
 class OpenRouterDemoModel:
-    """One selectable OpenRouter free model for the Streamlit test UI."""
+    """One selectable OpenRouter model for the Streamlit test UI."""
 
     id: str
     short_name: str
@@ -22,12 +20,29 @@ class OpenRouterDemoModel:
     why: str
     aa_url: str
     openrouter_url: str
+    paid: bool = False
 
 
-# Default is the most realistic local-GPU stand-in (30B-A3B, AA 24).
-DEFAULT_OPENROUTER_DEMO_MODEL_ID = "nvidia/nemotron-3.5-lightning:free"
+# Paid CIRSE demo default — skip the OpenRouter :free queue.
+DEFAULT_OPENROUTER_DEMO_MODEL_ID = "qwen/qwen3.8-flash"
 
 OPENROUTER_DEMO_MODELS: List[OpenRouterDemoModel] = [
+    OpenRouterDemoModel(
+        id="qwen/qwen3.8-flash",
+        short_name="Qwen 3.8 Flash",
+        lab="Alibaba / Qwen",
+        aa_index=0,
+        params="Flash (paid OpenRouter)",
+        local_fit="CIRSE live default — paid, low latency",
+        why=(
+            "Paid OpenRouter route for the public demo so generate does not "
+            "sit in the :free queue. Same Agentic RAG graph; embeddings stay "
+            "on the free OpenRouter embed slug."
+        ),
+        aa_url="https://openrouter.ai/qwen/qwen3.8-flash",
+        openrouter_url="https://openrouter.ai/qwen/qwen3.8-flash",
+        paid=True,
+    ),
     OpenRouterDemoModel(
         id="nvidia/nemotron-3.5-lightning:free",
         short_name="Nemotron 3.5 Lightning",
@@ -37,8 +52,8 @@ OPENROUTER_DEMO_MODELS: List[OpenRouterDemoModel] = [
         local_fit="Hospital GPU box — the size you could actually run on-prem",
         why=(
             "Open-weight agent model that nearly matches Nemotron 3 Super "
-            "(AA 26) at about one-quarter the size. Best default for showing "
-            "that Agentic RAG still works on hardware a department could host."
+            "(AA 26) at about one-quarter the size. Best free stand-in for "
+            "hardware a department could host."
         ),
         aa_url="https://artificialanalysis.ai/models/nemotron-3-5-lightning",
         openrouter_url="https://openrouter.ai/nvidia/nemotron-3.5-lightning:free",
@@ -77,10 +92,11 @@ OPENROUTER_DEMO_MODELS: List[OpenRouterDemoModel] = [
 ]
 
 AA_INDEX_NOTE = (
-    "Scores are Artificial Analysis Intelligence Index v4.1.1 "
+    "Free-model scores are Artificial Analysis Intelligence Index v4.1.1 "
     "(agents, coding, knowledge, scientific reasoning), retrieved 25 Aug 2026. "
     "Index versions are rebased over time, so treat them as a ranking, not a "
-    "clinical quality score."
+    "clinical quality score. Qwen 3.8 Flash is the paid CIRSE default and is "
+    "not ranked on that free-model list."
 )
 
 
@@ -93,15 +109,22 @@ def get_demo_model(model_id: str) -> Optional[OpenRouterDemoModel]:
 
 
 def default_demo_model_id(configured: str = "") -> str:
-    """Prefer a configured OpenRouter id when it is in the demo catalog."""
-    if configured and get_demo_model(configured):
+    """Prefer the paid CIRSE default; ignore leftover :free chat secrets."""
+    if (
+        configured
+        and not configured.endswith(":free")
+        and get_demo_model(configured)
+    ):
         return configured
     return DEFAULT_OPENROUTER_DEMO_MODEL_ID
 
 
 def demo_model_label(model_id: str) -> str:
-    """Sidebar label: short name, local-fit class, and AA score."""
+    """Sidebar label: short name, paid/AA class, and local-fit class."""
     model = get_demo_model(model_id)
     if model is None:
         return model_id
-    return f"{model.short_name}  ·  AA {model.aa_index}  ·  {model.local_fit.split('—')[0].strip()}"
+    fit = model.local_fit.split("—")[0].strip()
+    if model.paid:
+        return f"{model.short_name}  ·  paid  ·  {fit}"
+    return f"{model.short_name}  ·  AA {model.aa_index}  ·  {fit}"

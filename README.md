@@ -83,7 +83,7 @@ Example questions the public leaflets can support (also available as clickable c
 - What is sclerotherapy, in plain language?
 - Guardrail demo: heavy bleeding that will not stop / can’t breathe / chest pain
 
-The sidebar lets you switch among **open-weight** chat models served on OpenRouter’s free endpoints (default: NVIDIA Nemotron 3.5 Lightning). Embeddings use OpenRouter’s free `nvidia/nemotron-3-embed-1b:free` (same API key). That is a stand-in for a hospital GPU box — Streamlit Cloud cannot host Ollama. Each tester is capped (5 questions per session, 40 per day).
+The sidebar default chat model is paid **Qwen 3.8 Flash** (`qwen/qwen3.8-flash`) so live questions skip the OpenRouter `:free` queue. Free open-weight slugs (Nemotron Lightning, Gemma 4 31B, Nemotron Ultra) stay in the picker. Embeddings stay on OpenRouter’s free `nvidia/nemotron-3-embed-1b:free` (same API key). Each tester is capped (5 questions per session, 40 per day).
 
 The first screen asks for a **passphrase** (shared by the presenter). That keeps casual visitors from spending embedding credit. Change it with `DEMO_ACCESS_CODE` in Streamlit secrets, or set that secret to `off` to disable the lock.
 
