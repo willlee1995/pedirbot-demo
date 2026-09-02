@@ -7,6 +7,8 @@ import re
 
 from loguru import logger
 
+from src.caution_keywords import CAUTION_KEYWORDS as SHARED_CAUTION_KEYWORDS
+from src.caution_keywords import caution_keyword_hits
 from src.llm import LLMProvider
 
 
@@ -42,21 +44,7 @@ class SafetyGuard:
     - When to strongly recommend professional medical consultation
     """
 
-    # Post-procedure infection / wound concerns: answer from leaflets, then append
-    # the HIGH warning suffix (Eval-style caution path). Not full emergencies.
-    CAUTION_KEYWORDS = [
-        "oozing",
-        "pus",
-        "foul smell",
-        "very red",
-        "looks red",
-        "spreading redness",
-        "red streaks",
-        "yellow or green",
-        "流膿",
-        "發紅",
-        "紅腫擴散",
-    ]
+    CAUTION_KEYWORDS = SHARED_CAUTION_KEYWORDS
 
     # Clinical emergency indicators (beyond simple keywords)
     EMERGENCY_PATTERNS = [
@@ -213,12 +201,7 @@ Please remember: This chatbot cannot assess emergencies. Always err on the side 
 
     def _check_caution_keywords(self, text: str) -> list[str]:
         """Return caution keywords that match post-procedure infection concerns."""
-        text_lower = text.lower()
-        hits = []
-        for keyword in self.CAUTION_KEYWORDS:
-            if keyword.lower() in text_lower:
-                hits.append(keyword)
-        return hits
+        return caution_keyword_hits(text)
 
     def _is_chinese(self, text: str) -> bool:
         """Check if text contains Chinese characters."""

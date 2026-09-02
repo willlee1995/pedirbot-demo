@@ -12,6 +12,7 @@ from src.agentic_rag import create_agentic_rag_graph
 from src.text_cleanup import strip_model_reasoning
 from src.vector_store import VectorStore
 from src.retriever import AdvancedRetriever
+from src.caution_keywords import caution_keyword_hits
 from src.safety_guard import SafetyGuard, SafetyAssessment, RiskLevel
 from src.llm import get_llm_provider
 from src.source_allowlist import filter_citation_sources
@@ -470,14 +471,24 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                     logger.warning(f"⚠️ DEBUG: Message[-{len(messages)-idx}] ({type(msg).__name__}): {msg_content[:300]}...")
                 response_text = "I'm sorry, I couldn't generate a response."
 
-            if (
-                safety_assessment
-                and self.safety_guard
-                and safety_assessment.warning_message
-            ):
-                response_text = self.safety_guard.add_safety_wrapper(
-                    response_text, safety_assessment
-                )
+            caution_hits = caution_keyword_hits(query)
+            if caution_hits:
+                suffix = SafetyGuard.WARNING_MESSAGES[RiskLevel.HIGH]
+                if suffix and suffix not in response_text:
+                    logger.info(f"Appending HIGH caution suffix: {caution_hits}")
+                    response_text = response_text + suffix
+                if (
+                    safety_assessment is None
+                    or safety_assessment.risk_level == RiskLevel.NONE
+                ):
+                    safety_assessment = SafetyAssessment(
+                        risk_level=RiskLevel.HIGH,
+                        is_emergency=False,
+                        clinical_concerns=caution_hits,
+                        recommended_action="add_warning",
+                        warning_message=suffix,
+                        reasoning="Post-procedure caution keywords",
+                    )
 
             # Calculate total time
             end_time = time.time()

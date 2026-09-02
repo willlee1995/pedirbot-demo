@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import unittest
 
+from src.caution_keywords import CAUTION_KEYWORDS
 from src.demo_sample_questions import (
     SAMPLE_QUESTIONS,
     caution_samples,
@@ -41,20 +42,7 @@ _EMERGENCY_KEYWORDS = [
     "無法止血",
 ]
 
-# Keep in sync with SafetyGuard.CAUTION_KEYWORDS.
-_CAUTION_KEYWORDS = [
-    "oozing",
-    "pus",
-    "foul smell",
-    "very red",
-    "looks red",
-    "spreading redness",
-    "red streaks",
-    "yellow or green",
-    "流膿",
-    "發紅",
-    "紅腫擴散",
-]
+_CAUTION_KEYWORDS = list(CAUTION_KEYWORDS)
 
 
 class DemoSampleQuestionsTest(unittest.TestCase):
