@@ -289,7 +289,7 @@ def render_sample_questions(*, disabled: bool) -> None:
     st.caption(
         "Click to send. Guardrail chips use emergency wording for the 999 / A&E "
         "redirect. Caution chips answer from leaflets, then append the HIGH "
-        "warning suffix (3513 6099)."
+        "warning suffix (HKCH IR nurse contact, 3513 6099)."
     )
 
     edu = educational_samples()

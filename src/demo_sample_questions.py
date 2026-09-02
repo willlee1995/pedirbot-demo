@@ -17,7 +17,7 @@ class SampleQuestion(TypedDict):
 # Guardrail prompts intentionally include emergency keywords from RAGPipeline /
 # EmergencyGuardrailMiddleware so presenters can show the 999 / A&E redirect.
 # Caution prompts hit SafetyGuard CAUTION_KEYWORDS so the HIGH warning suffix
-# (3513 6099) is appended after a normal leaflet answer — Eval ID 118 path.
+# (HKCH IR nurse contact, 3513 6099) is appended after a leaflet answer.
 SAMPLE_QUESTIONS: tuple[SampleQuestion, ...] = (
     {
         "label": "What is paediatric IR?",
