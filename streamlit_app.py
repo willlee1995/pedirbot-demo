@@ -9,6 +9,7 @@ Enhanced version with:
 Run with: streamlit run streamlit_app.py
 """
 from pathlib import Path
+import os
 import sys
 import time
 
@@ -233,16 +234,33 @@ def init_rag_system(chat_model: str):
     return rag_pipeline, stats
 
 
+def reranker_status_label() -> str:
+    """Reranker slug, or off. Prefer Cloud env after bootstrap over stale Settings."""
+    raw = str(os.environ.get("USE_RERANKER", "")).strip().lower()
+    if raw:
+        enabled = raw in {"1", "true", "yes"}
+    else:
+        enabled = bool(settings.use_reranker)
+    model = (
+        os.environ.get("RERANKER_MODEL", "").strip()
+        or getattr(settings, "reranker_model", "")
+        or "cohere/rerank-4-fast"
+    )
+    return model if enabled else "off"
+
+
 def render_source_localities(sources: list) -> None:
-    """Show retrieved leaflet titles under the answer."""
+    """Show retrieved leaflet titles and reranker status under the answer."""
     sources = filter_citation_sources(sources)
     titles = unique_source_titles(sources)
     if not titles:
         return
+    reranker = reranker_status_label()
     with st.expander(
         f"📚 Sources ({len(titles)})",
         expanded=st.session_state.show_sources,
     ):
+        st.caption(f"Reranker: {reranker}")
         for title in titles:
             st.markdown(f"- {title}")
 
@@ -458,7 +476,7 @@ def render_sidebar(stats, chat_model: str):
             ({settings.openrouter_embedding_model if settings.embedding_provider == "openrouter" else settings.openai_embedding_model})<br>
             <strong>LLM:</strong> {settings.llm_provider}<br>
             <strong>Chat model:</strong> {model_line}<br>
-            <strong>Reranker:</strong> {settings.reranker_model if settings.use_reranker else "off"}
+            <strong>Reranker:</strong> {reranker_status_label()}
         </div>
         """, unsafe_allow_html=True)
         
