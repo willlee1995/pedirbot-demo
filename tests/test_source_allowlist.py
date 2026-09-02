@@ -17,6 +17,8 @@ from src.source_allowlist import (
     filter_retrieval_hits,
     is_demo_kb_path,
     is_demo_leaflet_filename,
+    source_document_title,
+    unique_source_titles,
     is_hidden_source_org,
     is_live_source_org,
     live_orgs_csv,
@@ -160,6 +162,30 @@ class LiveSourceOrgHelpersTest(unittest.TestCase):
         kept = filter_live_chunks(chunks)
         self.assertEqual(len(kept), 1)
         self.assertEqual(kept[0].metadata["source_org"], "HKCH")
+
+    def test_source_document_title_prefers_heading_then_filename(self):
+        self.assertEqual(
+            source_document_title({
+                "filename": "what_is_pediatric_ir.md",
+                "content": "# What is paediatric interventional radiology?\n\nBody",
+            }),
+            "What is paediatric interventional radiology?",
+        )
+        self.assertEqual(
+            source_document_title({"filename": "hkch_renal_biopsy_en.md"}),
+            "Renal biopsy",
+        )
+        self.assertEqual(
+            unique_source_titles([
+                {"title": "PICC line (peripherally inserted central catheter)"},
+                {"title": "PICC line (peripherally inserted central catheter)"},
+                {"filename": "fasting_and_preparation.md"},
+            ]),
+            [
+                "PICC line (peripherally inserted central catheter)",
+                "Fasting and preparation",
+            ],
+        )
 
 
 if __name__ == "__main__":

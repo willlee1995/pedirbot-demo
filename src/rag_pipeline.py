@@ -15,7 +15,11 @@ from src.retriever import AdvancedRetriever
 from src.caution_keywords import caution_keyword_hits
 from src.safety_guard import SafetyGuard, SafetyAssessment, RiskLevel
 from src.llm import get_llm_provider
-from src.source_allowlist import filter_citation_sources
+from src.source_allowlist import (
+    filter_citation_sources,
+    heading_from_text,
+    source_document_title,
+)
 from config import settings
 
 
@@ -386,20 +390,29 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
 
                         # Parse document info from formatted tool output
                         # Format: [Document N] Source: ORG | Region: X | Category: Y | filename (Relevance: 0.XXX)
-                        doc_pattern = r'\[Document \d+\] Source: ([^|]+) \| Region: ([^|]+) \| Category: ([^|]+) \| ([^(]+) \(Relevance: ([\d.]+)\)'
-                        matches = re.findall(doc_pattern, content)
+                        doc_pattern = (
+                            r'\[Document \d+\] Source: ([^|]+) \| Region: ([^|]+) \| '
+                            r'Category: ([^|]+) \| ([^(]+) \(Relevance: ([\d.]+)\)\n?(.*?)'
+                            r'(?=\n---\n|\n\[Document \d+\]|\Z)'
+                        )
+                        matches = re.findall(doc_pattern, content, re.DOTALL)
 
                         if matches:
                             for match in matches:
-                                source_org, region, category, filename, score = match
+                                source_org, region, category, filename, score, body = match
+                                snippet = (body or "").strip()
+                                title = heading_from_text(snippet) or source_document_title(
+                                    {"filename": filename.strip(), "content": snippet}
+                                )
                                 sources.append({
                                     'filename': filename.strip(),
+                                    'title': title,
                                     'source_org': source_org.strip(),
                                     'region': region.strip(),
                                     'category': category.strip(),
                                     'score': float(score),
                                     'tool': tool_name,
-                                    'content': content[:200] + '...' if len(content) > 200 else content
+                                    'content': snippet[:200] + '...' if len(snippet) > 200 else snippet
                                 })
                         else:
                             # Format 2: SQL Tool

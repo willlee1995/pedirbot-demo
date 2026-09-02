@@ -6,6 +6,7 @@ cited, listed in the UI, advertised in prompts/tools, or ingested. Original
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
@@ -158,6 +159,49 @@ def ensure_live_ingest_metadata(metadata: Mapping[str, Any]) -> Optional[Dict[st
     if canonical in HONG_KONG_LIVE_ORGS:
         meta["region"] = "Hong Kong"
     return meta
+
+
+def heading_from_text(text: Optional[str]) -> str:
+    """Return the first markdown heading in text, if any."""
+    match = re.search(r"^#+\s+(.+)$", text or "", re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+def title_from_filename(filename: Optional[str]) -> str:
+    """Human title from a leaflet filename."""
+    stem = Path(str(filename or "")).stem.strip()
+    if not stem or stem.lower() == "unknown":
+        return ""
+    stem = re.sub(r"^hkch_", "", stem, flags=re.IGNORECASE)
+    stem = re.sub(r"_(en|zh)$", "", stem, flags=re.IGNORECASE)
+    return re.sub(r"[_-]+", " ", stem).strip().capitalize()
+
+
+def source_document_title(source: Mapping[str, Any]) -> str:
+    """Best leaflet title for the public source list."""
+    for key in ("title", "section_title", "document_title"):
+        value = str(source.get(key) or "").strip()
+        if value:
+            return value
+    heading = heading_from_text(str(source.get("content") or ""))
+    if heading:
+        return heading
+    pretty = title_from_filename(source.get("filename") if source.get("filename") is not None else None)
+    return pretty or "Untitled leaflet"
+
+
+def unique_source_titles(sources: Sequence[Mapping[str, Any]]) -> List[str]:
+    """Deduplicate citation titles in retrieve order."""
+    titles: List[str] = []
+    seen = set()
+    for source in sources:
+        title = source_document_title(source)
+        key = title.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        titles.append(title)
+    return titles
 
 
 def filter_live_chunks(chunks: Iterable[Any]) -> List[Any]:
