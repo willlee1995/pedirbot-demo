@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     openrouter_api_base: str = "https://openrouter.ai/api/v1"
     # Streamlit test default: OpenRouter :free open-weight stand-in for local GPU
-    openrouter_chat_model: str = "nvidia/nemotron-3.5-lightning:free"
+    openrouter_chat_model: str = "qwen/qwen3.8-flash"
     openrouter_metadata_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_embedding_model: str = "nvidia/nemotron-3-embed-1b:free"
     collection_name: str = "pedir_demo_nemotron_embed_v6"

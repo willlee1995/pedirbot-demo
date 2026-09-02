@@ -347,9 +347,9 @@ def render_header():
     )
     if is_cloud_demo():
         st.caption(
-            "Cloud test: the same Agentic RAG graph as the local stack, with "
-            "OpenRouter **free** chat and embedding models as a stand-in for a "
-            "hospital GPU box."
+            "Cloud test: the same Agentic RAG graph as the local stack. "
+            "Chat defaults to paid **Qwen 3.8 Flash**; embeddings stay on "
+            "OpenRouter’s free embed slug."
         )
 
 
@@ -381,9 +381,8 @@ def render_model_picker() -> str:
     with st.sidebar:
         st.header("🧪 Test model")
         st.caption(
-            "Open-weight models on OpenRouter’s **free** endpoint. "
-            "Same Agentic RAG graph as a local Ollama/LM Studio run — "
-            "Streamlit Cloud just cannot host the GPU."
+            "Default is paid **Qwen 3.8 Flash** (CIRSE live). "
+            "Free open-weight slugs remain as a hospital-GPU stand-in."
         )
         selected = st.selectbox(
             "Chat model",
@@ -395,42 +394,41 @@ def render_model_picker() -> str:
         )
         model = get_demo_model(selected)
         if model:
+            score_line = (
+                f"Paid OpenRouter · {model.params}"
+                if model.paid
+                else f"AA Intelligence Index **{model.aa_index}** · {model.params}"
+            )
+            link_label = (
+                "OpenRouter (paid)" if model.paid else "OpenRouter free endpoint"
+            )
             st.markdown(
                 f"**{model.short_name}** ({model.lab})  \n"
-                f"AA Intelligence Index **{model.aa_index}** · {model.params}  \n"
+                f"{score_line}  \n"
                 f"{model.local_fit}"
             )
             st.caption(model.why)
             st.markdown(
-                f"[Artificial Analysis]({model.aa_url}) · "
-                f"[OpenRouter free endpoint]({model.openrouter_url})"
+                f"[Model card]({model.aa_url}) · "
+                f"[{link_label}]({model.openrouter_url})"
             )
-        with st.expander("Why these three models?"):
+        with st.expander("Why these models?"):
             st.markdown(
                 """
 PedIR-Bot’s production-facing path is **Query → urgency screen → hybrid
 retrieve → grade/rewrite → generate**. The Cloud demo keeps that graph and
 swaps only the LLM.
 
-We picked **open-weight** models that are free on OpenRouter today, using
-[Artificial Analysis](https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index)
-as the ranking source — not paid hosted chat models.
+| Role | Model |
+| --- | --- |
+| CIRSE live default (paid) | Qwen 3.8 Flash |
+| Local GPU stand-in (free) | Nemotron 3.5 Lightning (30B-A3B, AA 24) |
+| Workstation-class (free) | Gemma 4 31B dense (AA 29) |
+| Open-weight ceiling (free) | Nemotron 3 Ultra (550B-A55B, AA 38) |
 
-| Role | Model | AA |
-| --- | --- | --- |
-| Local GPU stand-in (default) | Nemotron 3.5 Lightning (30B-A3B) | 24 |
-| Workstation-class | Gemma 4 31B dense | 29 |
-| Open-weight ceiling | Nemotron 3 Ultra (550B-A55B) | 38 |
-
-Lightning is the default because it is the size a department GPU box could
-host, and it is only two Index points behind Nemotron 3 Super (AA 26) at
-about one-quarter the parameters. Gemma is the quality step that still
-fits one workstation and has native tool use plus multilingual coverage.
-Ultra shows the high end of US open weights; it is not a realistic
-on-prem serve for HKCH.
-
-Free endpoints can rate-limit. If one model fails, switch and retry.
-Chat is $0 on these slugs; **embeddings still use the OpenAI key**.
+Qwen is the default so generate skips the public `:free` queue. Free
+open-weight slugs stay in the picker as a hospital-GPU stand-in.
+Embeddings stay on the OpenRouter free embed slug (same API key).
                 """
             )
             st.caption(AA_INDEX_NOTE)

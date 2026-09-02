@@ -25,7 +25,7 @@ CLOUD_DEFAULTS = {
     "TOP_K_RETRIEVAL": "4",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
     "OPENAI_CHAT_MODEL": "gpt-4o-mini",
-    "OPENROUTER_CHAT_MODEL": "nvidia/nemotron-3.5-lightning:free",
+    "OPENROUTER_CHAT_MODEL": "qwen/qwen3.8-flash",
     "OPENROUTER_EMBEDDING_MODEL": "nvidia/nemotron-3-embed-1b:free",
     "DEMO_ACCESS_CODE": "cirse2026",
 }
@@ -89,6 +89,11 @@ def apply_cloud_defaults() -> None:
 
     for key, value in CLOUD_DEFAULTS.items():
         os.environ.setdefault(key, value)
+
+    # Paid CIRSE chat: do not keep a leftover :free chat secret as the default.
+    chat = os.environ.get("OPENROUTER_CHAT_MODEL", "").strip()
+    if not chat or chat.endswith(":free"):
+        os.environ["OPENROUTER_CHAT_MODEL"] = CLOUD_DEFAULTS["OPENROUTER_CHAT_MODEL"]
 
 
 def apply_streamlit_secrets_and_cloud_defaults() -> None:
