@@ -140,8 +140,8 @@ Respond in JSON only:
         RiskLevel.HIGH: (
             "\n\n⚠️ **Important**: The symptoms or situation you've described "
             "may require prompt medical attention. Please contact your doctor, "
-            "the IR nurse coordinator at 3513 6099, or visit your nearest A&E "
-            "if you're concerned."
+            "the HKCH IR nurse contact at 3513 6099, or visit your nearest "
+            "A&E if you are concerned."
         ),
         RiskLevel.CRITICAL: None,  # Use full emergency response instead
     }

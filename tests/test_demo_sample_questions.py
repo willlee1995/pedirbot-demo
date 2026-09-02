@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import unittest
 
+from pathlib import Path
+
 from src.caution_keywords import CAUTION_KEYWORDS
 from src.demo_sample_questions import (
     SAMPLE_QUESTIONS,
@@ -101,6 +103,14 @@ class DemoSampleQuestionsTest(unittest.TestCase):
                 [],
                 f"Caution sample must not trip emergency keywords {matched_e}: {sample['prompt']!r}",
             )
+
+    def test_high_warning_suffix_is_hkch_ir_nurse_contact(self):
+        root = Path(__file__).resolve().parents[1]
+        safety = (root / "src" / "safety_guard.py").read_text(encoding="utf-8")
+        caption = (root / "streamlit_app.py").read_text(encoding="utf-8")
+        self.assertIn("HKCH IR nurse contact", safety)
+        self.assertIn("3513 6099", safety)
+        self.assertIn("HKCH IR nurse contact, 3513 6099", caption)
 
     def test_labels_and_prompts_are_non_empty(self):
         for sample in SAMPLE_QUESTIONS:
