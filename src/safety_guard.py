@@ -42,6 +42,22 @@ class SafetyGuard:
     - When to strongly recommend professional medical consultation
     """
 
+    # Post-procedure infection / wound concerns: answer from leaflets, then append
+    # the HIGH warning suffix (Eval-style caution path). Not full emergencies.
+    CAUTION_KEYWORDS = [
+        "oozing",
+        "pus",
+        "foul smell",
+        "very red",
+        "looks red",
+        "spreading redness",
+        "red streaks",
+        "yellow or green",
+        "流膿",
+        "發紅",
+        "紅腫擴散",
+    ]
+
     # Clinical emergency indicators (beyond simple keywords)
     EMERGENCY_PATTERNS = [
         # # Respiratory distress
@@ -127,8 +143,18 @@ Respond in JSON only:
     # Standard warning messages
     WARNING_MESSAGES = {
         RiskLevel.LOW: "",
-        RiskLevel.MEDIUM: "\n\n⚠️ **Note**: Based on what you've described, it may be helpful to discuss this with your medical team for personalized guidance.",
-        RiskLevel.HIGH: "\n\n⚠️ **Important**: The symptoms or situation you've described may require prompt medical attention. Please contact your doctor, the IR nurse coordinator, or visit your nearest A&E if you're concerned.",
+        RiskLevel.MEDIUM: (
+            "\n\n⚠️ **Note**: Based on what you've described, it may be helpful "
+            "to discuss this with your medical team for personalized guidance. "
+            "If this is not an emergency, you can also contact the HKCH IR nurse "
+            "coordinator at 3513 6099."
+        ),
+        RiskLevel.HIGH: (
+            "\n\n⚠️ **Important**: The symptoms or situation you've described "
+            "may require prompt medical attention. Please contact your doctor, "
+            "the IR nurse coordinator at 3513 6099, or visit your nearest A&E "
+            "if you're concerned."
+        ),
         RiskLevel.CRITICAL: None,  # Use full emergency response instead
     }
 
@@ -185,6 +211,15 @@ Please remember: This chatbot cannot assess emergencies. Always err on the side 
                 matches.append(pattern.pattern)
         return matches
 
+    def _check_caution_keywords(self, text: str) -> list[str]:
+        """Return caution keywords that match post-procedure infection concerns."""
+        text_lower = text.lower()
+        hits = []
+        for keyword in self.CAUTION_KEYWORDS:
+            if keyword.lower() in text_lower:
+                hits.append(keyword)
+        return hits
+
     def _is_chinese(self, text: str) -> bool:
         """Check if text contains Chinese characters."""
         return any(ord(char) > 127 for char in text)
@@ -233,6 +268,18 @@ Please remember: This chatbot cannot assess emergencies. Always err on the side 
                 clinical_concerns=pattern_matches,
                 recommended_action="emergency_response",
                 reasoning="Emergency patterns detected in query"
+            )
+
+        caution_hits = self._check_caution_keywords(query)
+        if caution_hits:
+            logger.info(f"Caution keywords detected: {caution_hits}")
+            return SafetyAssessment(
+                risk_level=RiskLevel.HIGH,
+                is_emergency=False,
+                clinical_concerns=caution_hits,
+                recommended_action="add_warning",
+                warning_message=self.WARNING_MESSAGES[RiskLevel.HIGH],
+                reasoning="Post-procedure infection/wound caution keywords detected",
             )
 
         # If not using LLM or for simple cases, return no risk

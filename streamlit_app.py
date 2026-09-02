@@ -83,6 +83,7 @@ for _import_attempt in range(2):
             live_orgs_csv,
         )
         from src.demo_sample_questions import (
+            caution_samples,
             educational_samples,
             guardrail_samples,
         )
@@ -281,11 +282,13 @@ def render_sample_questions(*, disabled: bool) -> None:
     """Clickable chips that queue a full testing prompt into the chat path."""
     st.markdown("##### Try a sample question")
     st.caption(
-        "Click to send. Guardrail chips use emergency wording so you can "
-        "demo the 999 / A&E redirect without typing."
+        "Click to send. Guardrail chips use emergency wording for the 999 / A&E "
+        "redirect. Caution chips answer from leaflets, then append the HIGH "
+        "warning suffix (3513 6099)."
     )
 
     edu = educational_samples()
+    caution = caution_samples()
     guard = guardrail_samples()
 
     edu_cols = st.columns(min(3, len(edu)) or 1)
@@ -299,6 +302,21 @@ def render_sample_questions(*, disabled: bool) -> None:
         ):
             st.session_state.pending_prompt = sample["prompt"]
             st.rerun()
+
+    if caution:
+        st.caption("Caution suffix demos")
+        caution_cols = st.columns(min(2, len(caution)) or 1)
+        for i, sample in enumerate(caution):
+            if caution_cols[i % len(caution_cols)].button(
+                sample["label"],
+                key=f"sample_caution_{i}",
+                disabled=disabled,
+                use_container_width=True,
+                help=sample["prompt"],
+                type="secondary",
+            ):
+                st.session_state.pending_prompt = sample["prompt"]
+                st.rerun()
 
     st.caption("Guardrail demos")
     guard_cols = st.columns(min(2, len(guard)) or 1)

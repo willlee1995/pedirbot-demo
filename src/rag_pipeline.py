@@ -470,6 +470,15 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                     logger.warning(f"⚠️ DEBUG: Message[-{len(messages)-idx}] ({type(msg).__name__}): {msg_content[:300]}...")
                 response_text = "I'm sorry, I couldn't generate a response."
 
+            if (
+                safety_assessment
+                and self.safety_guard
+                and safety_assessment.warning_message
+            ):
+                response_text = self.safety_guard.add_safety_wrapper(
+                    response_text, safety_assessment
+                )
+
             # Calculate total time
             end_time = time.time()
             total_time = end_time - start_time
@@ -483,7 +492,7 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
             logger.info(f"⏰ End Time: {time.strftime('%H:%M:%S', time.localtime(end_time))}")
             logger.info("=" * 80)
 
-            return {
+            result = {
                 'response': response_text,
                 'sources': sources,
                 'source_documents': sources,  # Alias for compatibility
@@ -493,6 +502,12 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
                 'total_time': total_time,
                 'messages': messages,  # Raw graph messages for eval/debugging
             }
+            if safety_assessment:
+                result['safety_assessment'] = {
+                    'risk_level': safety_assessment.risk_level.value,
+                    'concerns': safety_assessment.clinical_concerns,
+                }
+            return result
 
         except Exception as e:
             end_time = time.time()

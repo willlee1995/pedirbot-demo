@@ -5,12 +5,12 @@ import unittest
 
 from src.demo_sample_questions import (
     SAMPLE_QUESTIONS,
+    caution_samples,
     educational_samples,
     guardrail_samples,
 )
 
 # Keep in sync with RAGPipeline.EMERGENCY_KEYWORDS / src.guardrails.EMERGENCY_KEYWORDS.
-# Listed here so this test can run without installing the full LangGraph stack.
 _EMERGENCY_KEYWORDS = [
     "can't breathe",
     "cannot breathe",
@@ -41,14 +41,32 @@ _EMERGENCY_KEYWORDS = [
     "無法止血",
 ]
 
+# Keep in sync with SafetyGuard.CAUTION_KEYWORDS.
+_CAUTION_KEYWORDS = [
+    "oozing",
+    "pus",
+    "foul smell",
+    "very red",
+    "looks red",
+    "spreading redness",
+    "red streaks",
+    "yellow or green",
+    "流膿",
+    "發紅",
+    "紅腫擴散",
+]
+
 
 class DemoSampleQuestionsTest(unittest.TestCase):
-    def test_has_educational_and_guardrail_chips(self):
+    def test_has_educational_guardrail_and_caution_chips(self):
         self.assertGreaterEqual(len(educational_samples()), 3)
         self.assertGreaterEqual(len(guardrail_samples()), 3)
+        self.assertGreaterEqual(len(caution_samples()), 1)
         self.assertEqual(
             len(SAMPLE_QUESTIONS),
-            len(educational_samples()) + len(guardrail_samples()),
+            len(educational_samples())
+            + len(guardrail_samples())
+            + len(caution_samples()),
         )
 
     def test_guardrail_prompts_trip_emergency_keywords(self):
@@ -61,15 +79,39 @@ class DemoSampleQuestionsTest(unittest.TestCase):
                 f"Guardrail sample did not match emergency keywords: {sample['prompt']!r}",
             )
 
-    def test_educational_prompts_do_not_trip_emergency_keywords(self):
-        keywords = [kw.lower() for kw in _EMERGENCY_KEYWORDS]
+    def test_educational_prompts_do_not_trip_emergency_or_caution(self):
+        emergency = [kw.lower() for kw in _EMERGENCY_KEYWORDS]
+        caution = [kw.lower() for kw in _CAUTION_KEYWORDS]
         for sample in educational_samples():
             prompt_lower = sample["prompt"].lower()
-            matched = [kw for kw in keywords if kw in prompt_lower]
+            matched_e = [kw for kw in emergency if kw in prompt_lower]
+            matched_c = [kw for kw in caution if kw in prompt_lower]
             self.assertEqual(
-                matched,
+                matched_e,
                 [],
-                f"Educational sample unexpectedly matches {matched}: {sample['prompt']!r}",
+                f"Educational sample unexpectedly matches emergency {matched_e}: {sample['prompt']!r}",
+            )
+            self.assertEqual(
+                matched_c,
+                [],
+                f"Educational sample unexpectedly matches caution {matched_c}: {sample['prompt']!r}",
+            )
+
+    def test_caution_prompts_hit_caution_keywords_not_emergency(self):
+        emergency = [kw.lower() for kw in _EMERGENCY_KEYWORDS]
+        caution = [kw.lower() for kw in _CAUTION_KEYWORDS]
+        for sample in caution_samples():
+            prompt_lower = sample["prompt"].lower()
+            matched_c = [kw for kw in caution if kw in prompt_lower]
+            matched_e = [kw for kw in emergency if kw in prompt_lower]
+            self.assertTrue(
+                matched_c,
+                f"Caution sample did not match caution keywords: {sample['prompt']!r}",
+            )
+            self.assertEqual(
+                matched_e,
+                [],
+                f"Caution sample must not trip emergency keywords {matched_e}: {sample['prompt']!r}",
             )
 
     def test_labels_and_prompts_are_non_empty(self):
@@ -77,6 +119,11 @@ class DemoSampleQuestionsTest(unittest.TestCase):
             self.assertTrue(sample["label"].strip())
             self.assertTrue(sample["prompt"].strip())
             self.assertIn(sample["triggers_guardrail"], (True, False))
+            self.assertIn(sample["triggers_caution"], (True, False))
+            self.assertFalse(
+                sample["triggers_guardrail"] and sample["triggers_caution"],
+                f"Sample cannot be both guardrail and caution: {sample['label']}",
+            )
 
 
 if __name__ == "__main__":
