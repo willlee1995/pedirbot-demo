@@ -474,7 +474,8 @@ def render_sidebar(stats, chat_model: str):
             <strong>Embedding:</strong> {settings.embedding_provider}
             ({settings.openrouter_embedding_model if settings.embedding_provider == "openrouter" else settings.openai_embedding_model})<br>
             <strong>LLM:</strong> {settings.llm_provider}<br>
-            <strong>Chat model:</strong> {model_line}
+            <strong>Chat model:</strong> {model_line}<br>
+            <strong>Reranker:</strong> {settings.reranker_model if settings.use_reranker else "off"}
         </div>
         """, unsafe_allow_html=True)
         

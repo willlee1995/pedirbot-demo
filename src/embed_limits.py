@@ -5,6 +5,10 @@ from __future__ import annotations
 _LIQUID_TOKEN_CAP = 512
 _LIQUID_TOKEN_BUDGET = 400
 
+# text-embedding-3-small / 3-large: 8192 tokens. CJK ≈ 1 token/char.
+_OPENAI_EMBED_TOKEN_CAP = 8192
+_OPENAI_EMBED_TOKEN_BUDGET = 7500
+
 
 def estimate_embed_tokens(text: str) -> int:
     """Conservative token count: CJK ≈ 1 token/char, other ≈ 2 chars/token."""
@@ -29,21 +33,34 @@ def embedding_token_limit(model: str) -> int | None:
     name = (model or "").replace("🆓", ":free").lower()
     if "lfm" in name and "embed" in name:
         return _LIQUID_TOKEN_CAP
+    if "text-embedding-3" in name:
+        return _OPENAI_EMBED_TOKEN_CAP
     return None
+
+
+def embed_token_budget(model: str) -> int | None:
+    """Safe token budget under the hard cap, or None if the model is uncapped here."""
+    limit = embedding_token_limit(model)
+    if limit is None:
+        return None
+    if limit <= _LIQUID_TOKEN_CAP:
+        return _LIQUID_TOKEN_BUDGET
+    return _OPENAI_EMBED_TOKEN_BUDGET
 
 
 def chunk_size_for_embedding_model(model: str, default_chunk_size: int) -> int:
     """Character chunk size that stays under the model token cap, including CJK."""
-    if embedding_token_limit(model) is None:
+    budget = embed_token_budget(model)
+    if budget is None:
         return default_chunk_size
-    return _LIQUID_TOKEN_BUDGET
+    return budget
 
 
 def fit_text_to_embed_limit(text: str, model: str) -> str:
     """Truncate text so an estimated token count stays under the model cap."""
-    if embedding_token_limit(model) is None or not text:
+    budget = embed_token_budget(model)
+    if budget is None or not text:
         return text
-    budget = _LIQUID_TOKEN_BUDGET
     if estimate_embed_tokens(text) <= budget:
         return text
     low = 0

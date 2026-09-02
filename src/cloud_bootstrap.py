@@ -17,16 +17,18 @@ USAGE_PATH = ROOT / ".demo_usage.json"
 
 CLOUD_DEFAULTS = {
     "EMBEDDING_PROVIDER": "openrouter",
-    "USE_RERANKER": "false",
+    "USE_RERANKER": "true",
+    "RERANKER_MODEL": "cohere/rerank-4-fast",
     "LANGSMITH_TRACING": "false",
     "CHROMA_PERSIST_DIRECTORY": "./chroma_db",
-    "COLLECTION_NAME": "pedir_demo_nemotron_embed_v6",
+    "COLLECTION_NAME": "pedir_demo_openai_embed_3small_v1",
+    "MAX_CHUNK_SIZE": "7500",
     "AGENT_MAX_ITERATIONS": "2",
     "TOP_K_RETRIEVAL": "4",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
     "OPENAI_CHAT_MODEL": "gpt-4o-mini",
     "OPENROUTER_CHAT_MODEL": "qwen/qwen3.8-flash",
-    "OPENROUTER_EMBEDDING_MODEL": "nvidia/nemotron-3-embed-1b:free",
+    "OPENROUTER_EMBEDDING_MODEL": "openai/text-embedding-3-small",
     "DEMO_ACCESS_CODE": "cirse2026",
 }
 
@@ -74,7 +76,7 @@ def apply_streamlit_secrets() -> None:
 
 
 def apply_cloud_defaults() -> None:
-    """Force API embeddings, no local reranker, and no LangSmith on Cloud."""
+    """Force API embeddings, OpenRouter rerank, and no LangSmith on Cloud."""
     if not is_cloud_demo():
         return
 
@@ -94,6 +96,17 @@ def apply_cloud_defaults() -> None:
     chat = os.environ.get("OPENROUTER_CHAT_MODEL", "").strip()
     if not chat or chat.endswith(":free"):
         os.environ["OPENROUTER_CHAT_MODEL"] = CLOUD_DEFAULTS["OPENROUTER_CHAT_MODEL"]
+
+    embed = os.environ.get("OPENROUTER_EMBEDDING_MODEL", "").strip()
+    if not embed or embed.endswith(":free"):
+        os.environ["OPENROUTER_EMBEDDING_MODEL"] = CLOUD_DEFAULTS["OPENROUTER_EMBEDDING_MODEL"]
+
+    collection = os.environ.get("COLLECTION_NAME", "").strip()
+    if not collection or "nemotron_embed" in collection:
+        os.environ["COLLECTION_NAME"] = CLOUD_DEFAULTS["COLLECTION_NAME"]
+
+    os.environ["USE_RERANKER"] = CLOUD_DEFAULTS["USE_RERANKER"]
+    os.environ["RERANKER_MODEL"] = CLOUD_DEFAULTS["RERANKER_MODEL"]
 
 
 def apply_streamlit_secrets_and_cloud_defaults() -> None:

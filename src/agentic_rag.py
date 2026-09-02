@@ -17,6 +17,10 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.llm import get_langchain_llm
+from src.structured_output import (
+    chat_model_id,
+    invoke_openrouter_json_schema,
+)
 from src.tools import get_knowledge_base_tools
 from src.vector_store import VectorStore
 from src.guardrails import EmergencyGuardrailMiddleware, SafetyCheckGuardrail, EMERGENCY_RESPONSE
@@ -31,6 +35,14 @@ except ImportError:
 
 import json
 from langchain_core.tools import render_text_description
+
+def _invoke_structured(llm, messages, structured_schema):
+    """Structured generate: OpenRouter json_schema, else LangChain default."""
+    if settings.llm_provider == "openrouter":
+        return invoke_openrouter_json_schema(llm, messages, structured_schema)
+    structured_llm = llm.with_structured_output(structured_schema, include_raw=True)
+    return structured_llm.invoke(messages)
+
 
 def _extract_json(text: str) -> Optional[Dict]:
     """Extract JSON object from text."""
@@ -216,8 +228,7 @@ def create_agentic_rag_graph(
         for attempt in range(1, attempts + 1):
             try:
                 if structured and structured_schema:
-                    structured_llm = llm.with_structured_output(structured_schema, include_raw=True)
-                    result = structured_llm.invoke(messages)
+                    result = _invoke_structured(llm, messages, structured_schema)
                     raw_msg = result.get("raw")
                     parsed = result.get("parsed")
                     raw_content = raw_msg.content if raw_msg and hasattr(raw_msg, 'content') else ""
@@ -251,8 +262,7 @@ def create_agentic_rag_graph(
         # Exhausted retries — return whatever we got last
         logger.error(f"❌ {label}: exhausted all {attempts} retry attempts, returning last result")
         if structured and structured_schema:
-            structured_llm = llm.with_structured_output(structured_schema, include_raw=True)
-            return structured_llm.invoke(messages)
+            return _invoke_structured(llm, messages, structured_schema)
         return llm.invoke(messages)
 
     # Node 0: Emergency check (before agent processing)
@@ -777,103 +787,96 @@ def create_agentic_rag_graph(
         )
         logger.debug(f"Generate prompt length: {len(prompt)} chars")
 
-        # Use structured output with include_raw=True for debugging.
-        # OpenRouter :free models often queue, then hang on JSON-schema tool
-        # calling; skip that path and generate plain text.
-        try:
-            if settings.llm_provider == "openrouter":
-                logger.info("OpenRouter demo: raw generate (skip structured JSON)")
-                raise ValueError("skip structured output on OpenRouter")
-            result = _invoke_with_retry(
-                answer_llm, [HumanMessage(content=prompt)],
-                label="generate_answer",
-                structured=True,
-                structured_schema=RAGResponse,
-                max_retries=1
-            )
-
-            # include_raw=True returns dict: {"raw": AIMessage, "parsed": RAGResponse|None, "parsing_error": Exception|None}
-            raw_msg = result.get("raw")
-            parsed = result.get("parsed")
-            parsing_error = result.get("parsing_error")
-
-            # Debug: log raw message details
-            raw_content = raw_msg.content if raw_msg and hasattr(raw_msg, 'content') else ""
-            raw_tool_calls = raw_msg.tool_calls if raw_msg and hasattr(raw_msg, 'tool_calls') else []
-            logger.info(f"⚠️ DEBUG structured: raw content length={len(raw_content)}, tool_calls={len(raw_tool_calls)}, parsed={parsed is not None}, parsing_error={parsing_error}")
-            if raw_content:
-                logger.debug(f"⚠️ DEBUG structured: raw content preview: {raw_content[:300]}")
-
-            if parsing_error:
-                logger.warning(f"⚠️ DEBUG structured: parsing_error={parsing_error}")
-
-            # Guard: parsed can be None when parsing fails
-            if parsed is None:
-                logger.warning("⚠️ DEBUG: structured output parsed is None, falling back to raw generation")
-                # Try to use the raw content instead
-                if raw_content:
-                    logger.info(f"⚠️ DEBUG: using raw_content as fallback (length={len(raw_content)})")
-                    raise ValueError(f"Structured parsing failed but raw content available: {parsing_error}")
-                raise ValueError(f"Structured output returned None: {parsing_error}")
-
-            # Check if the answer field is empty
-            if not parsed.answer:
-                logger.warning(f"⚠️ DEBUG: Structured output parsed but answer is EMPTY. confidence={parsed.confidence}, sources={parsed.sources}")
-                if raw_content:
-                    raise ValueError("Structured output has empty answer field, raw content available")
-                raise ValueError("Structured output has empty answer field")
-
-            # Convert Pydantic model to string for compatibility with existing LangGraph format
-            content = parsed.model_dump_json()
-            logger.info(f"✅ generate_answer: structured output OK, content length={len(content)}")
-            return {"messages": [AIMessage(content=content, response_metadata={'safety_blocked': False})]}
-
-        except Exception as e:
-            logger.error(f"Structured output failed, falling back to raw generation: {e}")
-            # Fallback: try to use raw content from structured call first, else make a new raw call
-            fallback_content = ""
-            if 'raw_msg' in dir() and raw_msg and hasattr(raw_msg, 'content') and raw_msg.content:
-                fallback_content = raw_msg.content
-                logger.info(f"⚠️ DEBUG fallback: reusing raw_msg content, length={len(fallback_content)}")
-            else:
-                response = _invoke_with_retry(
+        # Paid OpenRouter (Qwen 3.8 Flash) supports response_format json_schema.
+        # :free endpoints often ignore or hang on structured outputs — skip those.
+        use_structured = not chat_model_id(answer_llm).endswith(":free")
+        raw_msg = None
+        if use_structured:
+            try:
+                result = _invoke_with_retry(
                     answer_llm, [HumanMessage(content=prompt)],
-                    label="generate_answer_fallback"
+                    label="generate_answer",
+                    structured=True,
+                    structured_schema=RAGResponse,
+                    max_retries=1
                 )
-                fallback_content = response.content if hasattr(response, 'content') else str(response)
-                logger.info(f"⚠️ DEBUG fallback: raw LLM call (with retry), response_content length={len(fallback_content)}")
 
-            response_content = fallback_content
-            if not response_content:
-                logger.warning(f"⚠️ DEBUG fallback: response content is EMPTY even after fallback")
+                raw_msg = result.get("raw")
+                parsed = result.get("parsed")
+                parsing_error = result.get("parsing_error")
 
-            # Try to force it into our JSON format if the LLM didn't return JSON naturally
-            parsed_json = _extract_json(response_content)
+                raw_content = raw_msg.content if raw_msg and hasattr(raw_msg, 'content') else ""
+                raw_tool_calls = raw_msg.tool_calls if raw_msg and hasattr(raw_msg, 'tool_calls') else []
+                logger.info(f"⚠️ DEBUG structured: raw content length={len(raw_content)}, tool_calls={len(raw_tool_calls)}, parsed={parsed is not None}, parsing_error={parsing_error}")
+                if raw_content:
+                    logger.debug(f"⚠️ DEBUG structured: raw content preview: {raw_content[:300]}")
 
-            clean_response = strip_model_reasoning(response_content)
+                if parsing_error:
+                    logger.warning(f"⚠️ DEBUG structured: parsing_error={parsing_error}")
 
-            if parsed_json and "answer" in parsed_json:
-                final_answer = strip_model_reasoning(str(parsed_json["answer"]))
-                logger.info(f"⚠️ DEBUG fallback: extracted answer from JSON, length={len(final_answer)}")
-            else:
-                final_answer = clean_response
-                logger.info(f"⚠️ DEBUG fallback: using clean_response as answer, length={len(final_answer)}")
+                if parsed is None:
+                    logger.warning("⚠️ DEBUG: structured output parsed is None, falling back to raw generation")
+                    if raw_content:
+                        logger.info(f"⚠️ DEBUG: using raw_content as fallback (length={len(raw_content)})")
+                        raise ValueError(f"Structured parsing failed but raw content available: {parsing_error}")
+                    raise ValueError(f"Structured output returned None: {parsing_error}")
 
-            if parsed_json and "answer" in parsed_json:
-                parsed_json["answer"] = final_answer
-                content = json.dumps(parsed_json, ensure_ascii=False)
-            else:
-                # Wrap the raw clean string in the expected JSON schema so the frontend doesn't crash
-                fallback_dict = {
-                    "answer": final_answer,
-                    "confidence": 0.8,
-                    "sources": [],
-                    "reasoning": "Fallback generation"
-                }
-                content = json.dumps(fallback_dict, ensure_ascii=False)
+                if not parsed.answer:
+                    logger.warning(f"⚠️ DEBUG: Structured output parsed but answer is EMPTY. confidence={parsed.confidence}, sources={parsed.sources}")
+                    if raw_content:
+                        raise ValueError("Structured output has empty answer field, raw content available")
+                    raise ValueError("Structured output has empty answer field")
 
-            logger.info(f"⚠️ DEBUG fallback: final content length={len(content)}")
-            return {"messages": [AIMessage(content=content, response_metadata={'safety_blocked': False})]}
+                content = parsed.model_dump_json()
+                logger.info(f"✅ generate_answer: structured output OK, content length={len(content)}")
+                return {"messages": [AIMessage(content=content, response_metadata={'safety_blocked': False})]}
+
+            except Exception as e:
+                logger.error(f"Structured output failed, falling back to raw generation: {e}")
+        else:
+            logger.info("OpenRouter :free: raw generate (skip structured JSON)")
+
+        fallback_content = ""
+        if raw_msg and hasattr(raw_msg, "content") and raw_msg.content:
+            fallback_content = raw_msg.content
+            logger.info(f"⚠️ DEBUG fallback: reusing raw_msg content, length={len(fallback_content)}")
+        else:
+            response = _invoke_with_retry(
+                answer_llm, [HumanMessage(content=prompt)],
+                label="generate_answer_fallback"
+            )
+            fallback_content = response.content if hasattr(response, 'content') else str(response)
+            logger.info(f"⚠️ DEBUG fallback: raw LLM call (with retry), response_content length={len(fallback_content)}")
+
+        response_content = fallback_content
+        if not response_content:
+            logger.warning(f"⚠️ DEBUG fallback: response content is EMPTY even after fallback")
+
+        parsed_json = _extract_json(response_content)
+
+        clean_response = strip_model_reasoning(response_content)
+
+        if parsed_json and "answer" in parsed_json:
+            final_answer = strip_model_reasoning(str(parsed_json["answer"]))
+            logger.info(f"⚠️ DEBUG fallback: extracted answer from JSON, length={len(final_answer)}")
+        else:
+            final_answer = clean_response
+            logger.info(f"⚠️ DEBUG fallback: using clean_response as answer, length={len(final_answer)}")
+
+        if parsed_json and "answer" in parsed_json:
+            parsed_json["answer"] = final_answer
+            content = json.dumps(parsed_json, ensure_ascii=False)
+        else:
+            fallback_dict = {
+                "answer": final_answer,
+                "confidence": 0.8,
+                "sources": [],
+                "reasoning": "Fallback generation"
+            }
+            content = json.dumps(fallback_dict, ensure_ascii=False)
+
+        logger.info(f"⚠️ DEBUG fallback: final content length={len(content)}")
+        return {"messages": [AIMessage(content=content, response_metadata={'safety_blocked': False})]}
 
     # Node: Radiologist Review Subagent
     @traceable(name="radiologist_review", run_type="chain", metadata={"node": "reviewer"})
