@@ -353,8 +353,9 @@ def render_header():
     if is_cloud_demo():
         st.caption(
             "Cloud test: the same Agentic RAG graph as the local stack. "
-            "Chat defaults to paid **Qwen 3.8 Flash**; embeddings stay on "
-            "OpenRouter’s free embed slug."
+            "Chat defaults to paid **Gemini 3 Flash** (Eval 1); "
+            "**Gemma 4 31B** (paid) stands in for MedGemma 1.5. "
+            "Embeddings stay on OpenRouter’s free embed slug."
         )
 
 
@@ -386,7 +387,8 @@ def render_model_picker() -> str:
     with st.sidebar:
         st.header("🧪 Test model")
         st.caption(
-            "Default is paid **Qwen 3.8 Flash** (CIRSE live). "
+            "Default is paid **Gemini 3 Flash** (Eval 1 bake-off model). "
+            "**Gemma 4 31B** (paid) stands in for MedGemma 1.5 — no hosted API. "
             "Free open-weight slugs remain as a hospital-GPU stand-in."
         )
         selected = st.selectbox(
@@ -431,13 +433,15 @@ swaps only the LLM.
 
 | Role | Model |
 | --- | --- |
-| CIRSE live default (paid) | Qwen 3.8 Flash |
+| Eval 1 bake-off (paid, default) | Gemini 3 Flash Preview |
+| Eval 2 stand-in (paid) | Gemma 4 31B — hosted alternative to MedGemma 1.5 (no public MedGemma API) |
+| Paid low-latency | Qwen 3.8 Flash |
 | Local GPU stand-in (free) | Nemotron 3.5 Lightning (30B-A3B, AA 24) |
-| Workstation-class (free) | Gemma 4 31B dense (AA 29) |
 | Open-weight ceiling (free) | Nemotron 3 Ultra (550B-A55B, AA 38) |
 
-Qwen is the default so generate skips the public `:free` queue. Free
-open-weight slugs stay in the picker as a hospital-GPU stand-in.
+Gemini is the default so the live demo uses the model we scored. Gemma 4
+uses the paid OpenRouter slug (not `:free`) so the queue stays available.
+Free open-weight slugs stay in the picker as a hospital-GPU stand-in.
 Embeddings stay on the OpenRouter free embed slug (same API key).
                 """
             )

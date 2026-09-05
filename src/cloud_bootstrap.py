@@ -27,7 +27,7 @@ CLOUD_DEFAULTS = {
     "TOP_K_RETRIEVAL": "4",
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
     "OPENAI_CHAT_MODEL": "gpt-4o-mini",
-    "OPENROUTER_CHAT_MODEL": "qwen/qwen3.8-flash",
+    "OPENROUTER_CHAT_MODEL": "google/gemini-3-flash-preview",
     "OPENROUTER_EMBEDDING_MODEL": "openai/text-embedding-3-small",
     "DEMO_ACCESS_CODE": "cirse2026",
 }

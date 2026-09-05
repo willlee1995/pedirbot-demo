@@ -83,7 +83,7 @@ Example questions the public leaflets can support (also available as clickable c
 - What is sclerotherapy, in plain language?
 - Guardrail demo: heavy bleeding that will not stop / can’t breathe / chest pain
 
-The sidebar default chat model is paid **Qwen 3.8 Flash** (`qwen/qwen3.8-flash`) so live questions skip the OpenRouter `:free` queue. Free open-weight slugs (Nemotron Lightning, Gemma 4 31B, Nemotron Ultra) stay in the picker. Embeddings use OpenRouter `openai/text-embedding-3-small` (8k token input). Retrieval is reranked with `cohere/rerank-4-fast`. Each tester is capped (5 questions per session, 40 per day).
+The sidebar default chat model is paid **Gemini 3 Flash Preview** (`google/gemini-3-flash-preview`) — the Eval 1 bake-off model. **Gemma 4 31B** (`google/gemma-4-31b-it`, paid, not `:free`) stands in for MedGemma 1.5 because there is no hosted MedGemma 1.5 API. Qwen 3.8 Flash stays as a paid low-latency option; free open-weight slugs (Nemotron Lightning, Nemotron Ultra) stay in the picker. Embeddings use OpenRouter `openai/text-embedding-3-small` (8k token input). Retrieval is reranked with `cohere/rerank-4-fast`. Each tester is capped (5 questions per session, 40 per day).
 
 The first screen asks for a **passphrase** (shared by the presenter). That keeps casual visitors from spending embedding credit. Change it with `DEMO_ACCESS_CODE` in Streamlit secrets, or set that secret to `off` to disable the lock.
 
