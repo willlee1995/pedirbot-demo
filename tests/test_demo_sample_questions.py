@@ -6,6 +6,12 @@ import unittest
 from pathlib import Path
 
 from src.caution_keywords import CAUTION_KEYWORDS
+from src.guardrails import (
+    EMERGENCY_RESPONSE,
+    EMERGENCY_RESPONSE_ZH,
+    EmergencyGuardrailMiddleware,
+    query_is_chinese,
+)
 from src.demo_sample_questions import (
     SAMPLE_QUESTIONS,
     caution_samples,
@@ -111,6 +117,22 @@ class DemoSampleQuestionsTest(unittest.TestCase):
         self.assertIn("HKCH IR nurse contact", safety)
         self.assertIn("3513 6099", safety)
         self.assertIn("HKCH IR nurse contact, 3513 6099", caption)
+
+    def test_english_guardrail_chips_get_english_canned_reply(self):
+        rail = EmergencyGuardrailMiddleware()
+        for sample in guardrail_samples():
+            reply = rail.check_emergency(sample["prompt"])
+            self.assertIsNotNone(reply, sample["prompt"])
+            if query_is_chinese(sample["prompt"]):
+                self.assertEqual(reply, EMERGENCY_RESPONSE_ZH)
+            else:
+                self.assertEqual(reply, EMERGENCY_RESPONSE)
+                self.assertIn("Call 999", reply)
+                self.assertNotIn("致電999", reply)
+
+    def test_em_dash_english_is_not_chinese(self):
+        self.assertFalse(query_is_chinese("can't breathe — please help!"))
+        self.assertTrue(query_is_chinese("我的孩子做完手術後不能呼吸，怎麼辦？"))
 
     def test_labels_and_prompts_are_non_empty(self):
         for sample in SAMPLE_QUESTIONS:

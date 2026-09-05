@@ -13,6 +13,7 @@ from src.text_cleanup import strip_model_reasoning
 from src.vector_store import VectorStore
 from src.retriever import AdvancedRetriever
 from src.caution_keywords import caution_keyword_hits
+from src.guardrails import query_is_chinese
 from src.safety_guard import SafetyGuard, SafetyAssessment, RiskLevel
 from src.llm import get_llm_provider
 from src.source_allowlist import (
@@ -161,11 +162,9 @@ If you have urgent questions about your procedure, please contact the HKCH IR nu
         for keyword in self.EMERGENCY_KEYWORDS:
             if keyword in query_lower:
                 logger.warning(f"Emergency keyword detected: {keyword}")
-                # Detect language and return appropriate response
-                if any(ord(char) > 127 for char in query):  # Contains non-ASCII (likely Chinese)
+                if query_is_chinese(query):
                     return self.EMERGENCY_RESPONSE_ZH
-                else:
-                    return self.EMERGENCY_RESPONSE
+                return self.EMERGENCY_RESPONSE
 
         return None
 

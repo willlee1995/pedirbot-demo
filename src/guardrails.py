@@ -37,6 +37,11 @@ EMERGENCY_RESPONSE_ZH = """這聽起來可能是緊急情況。請不要依賴�
 """
 
 
+def query_is_chinese(text: str) -> bool:
+    """True when text has CJK ideographs. Em-dashes and curly quotes are not Chinese."""
+    return any("\u4e00" <= ch <= "\u9fff" or "\u3400" <= ch <= "\u4dbf" for ch in text)
+
+
 class EmergencyGuardrailMiddleware:
     """Deterministic guardrail: Block emergency-related queries before agent processing."""
 
@@ -91,11 +96,9 @@ class EmergencyGuardrailMiddleware:
         for keyword in self.emergency_keywords:
             if keyword in query_lower:
                 logger.warning(f"🚨 Emergency keyword detected: {keyword}")
-                # Detect language and return appropriate response
-                if any(ord(char) > 127 for char in query_text):  # Contains non-ASCII (likely Chinese)
+                if query_is_chinese(query_text):
                     return self.emergency_response_zh
-                else:
-                    return self.emergency_response
+                return self.emergency_response
 
         return None
 

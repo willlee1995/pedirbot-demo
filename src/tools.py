@@ -11,6 +11,7 @@ from src.source_allowlist import (
     filter_retrieval_hits,
     plan_live_search,
 )
+from src.retrieve_format import format_retrieved_body
 from config import settings
 
 # Try to import create_retriever_tool from langchain_classic (LangChain 1.0 pattern)
@@ -95,7 +96,7 @@ def search_knowledge_base(
 
         formatted_results.append(
             f"[Document {i}] Source: {source_org} | Region: {region} | Category: {procedure_category} | {filename} (Relevance: {score:.3f})\n"
-            f"{result['content'][:500]}...\n"
+            f"{format_retrieved_body(result.get('content', ''), i)}\n"
         )
 
     return "\n---\n".join(formatted_results)
@@ -143,7 +144,7 @@ def search_by_metadata(
 
         formatted_results.append(
             f"[{source_org} Document {i}] {filename} (Relevance: {score:.3f})\n"
-            f"{result['content'][:500]}...\n"
+            f"{format_retrieved_body(result.get('content', ''), i)}\n"
         )
 
     return "\n---\n".join(formatted_results)
@@ -190,11 +191,8 @@ def get_knowledge_base_tools(vector_store: VectorStore, retriever: Optional[Adva
 
             **USE THIS TOOL FIRST**. It finds documents based on meaning suitable for natural language queries.
 
-            This tool returns partial content (chunks) with metadata.
-            Strategy:
-            1. Search with this tool first.
-            2. If you find a relevant chunk, check its 'filename' or 'document_id' in the metadata.
-            3. If you need the full context of that valid document, use `get_document_by_id(document_id)`.
+            This tool returns the full retrieved chunk for the top 3 hits
+            and a short snippet for any extra hits.
 
             Args:
                 query: The search query text
@@ -251,7 +249,8 @@ def get_knowledge_base_tools(vector_store: VectorStore, retriever: Optional[Adva
                     logger.warning(f"⚠️  Document {i} is missing categorization metadata")
 
                 formatted.append(
-                    f"[Document {i}] Source: {org} | Region: {region_val} | Category: {procedure_category_val} | {filename} (Relevance: {score:.3f})\n{r['content'][:500]}...\n"
+                    f"[Document {i}] Source: {org} | Region: {region_val} | Category: {procedure_category_val} | {filename} (Relevance: {score:.3f})\n"
+                    f"{format_retrieved_body(r.get('content', ''), i)}\n"
                 )
             return "\n---\n".join(formatted)
 

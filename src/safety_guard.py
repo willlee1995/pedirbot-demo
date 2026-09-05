@@ -9,6 +9,7 @@ from loguru import logger
 
 from src.caution_keywords import CAUTION_KEYWORDS as SHARED_CAUTION_KEYWORDS
 from src.caution_keywords import caution_keyword_hits
+from src.guardrails import query_is_chinese
 from src.llm import LLMProvider
 
 
@@ -204,8 +205,8 @@ Please remember: This chatbot cannot assess emergencies. Always err on the side 
         return caution_keyword_hits(text)
 
     def _is_chinese(self, text: str) -> bool:
-        """Check if text contains Chinese characters."""
-        return any(ord(char) > 127 for char in text)
+        """True when text has CJK ideographs, not punctuation like — or ’."""
+        return query_is_chinese(text)
 
     def _parse_json_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse JSON from LLM response."""
