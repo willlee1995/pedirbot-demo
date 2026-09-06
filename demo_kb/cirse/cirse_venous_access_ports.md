@@ -1,0 +1,15 @@
+Source: CIRSE patient information © Cardiovascular and Interventional Radiological Society of Europe
+
+## What is a venous access port?
+A venous access port is a central venous access device that allows doctors to easily access your veins to give treatments and to take blood. It is made of a non-irritant material and is designed to be inserted under your skin and remain in place for weeks or months. It is also known as a subcutaneous infusion port, and includes a catheter (a thin hollow tube), which is inserted through the skin and is then connected to a port in a pocket under the skin.
+Venous access ports are commonly used in the care of cancer patients, but there are many other conditions that benefit from the use of venous access ports. Modern venous access ports are light and can be used during imaging procedures.
+## How does the procedure work?
+The procedure for implanting a venous access catheter is performed on an out-patient basis, under fluoroscopic guidance. In most cases, the port is inserted into the patient’s upper chest or arm. From there a thin catheter is placed in a vein.
+Once the interventional radiologist has accessed the vein, they will use a guidewire to introduce a sheath and create a small pocket under the skin in the chest area. The catheter is then tunnelled to the vein and the port is connected to the catheter and placed in the pocket. Most physicians prefer to wait a week before starting to use the port. The wall of the port can be used for approximately 2000 punctures.
+## Why perform it?
+The procedure is ideal for patients in need of long-term yet intermittent intravenous access. These patients typically receive chemotherapy or transfusions on a weekly or monthly basis and are unable to use a catheter inserted into a vein in the arm or hand.
+Although the placement procedure is more complex and invasive than the more common technique of inserting a catheter into a vein in the hand or arm, central venous access allow patients to maintain daily activities, such as bathing, swimming and other forms of exercise. A venous access port has a lower risk of being dislodged than a catheter in the arm or hand. The port also requires fewer injections of heparin and fewer dressing changes. Because it is beneath the skin, it has an aesthetic advantage as well as a decreased risk of infection. Although venous access ports are expensive, the maintenance costs and risk of infection are low.
+## What are the risks?
+Early complications are related to the technique itself, such as bruising, pneumothorax, nerve injury and an abnormal connection developing between an artery and a vein (called an arteriovenous fistula). Complications that may occur after the procedure include infection, a blockage or fracture in the catheter, blood clots and blockages in the vein.
+Long-term complications include catheter fractures, which may may lead to leakage under the skin, causing soft tissue death or wounds that do not heal.
+If the venous access port is implanted under image guidance, the risk of procedure-related complications associated with surgical implantation is virtually eliminated.

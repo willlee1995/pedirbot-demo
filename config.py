@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     openrouter_chat_model: str = "google/gemini-3-flash-preview"
     openrouter_metadata_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_embedding_model: str = "openai/text-embedding-3-small"
-    collection_name: str = "pedir_demo_openai_embed_3small_v1"
+    collection_name: str = "pedir_demo_openai_embed_3small_v2"
 
     # Kilo Gateway (OpenAI-compatible). Same chat slugs as OpenRouter.
     kilo_api_key: str = ""

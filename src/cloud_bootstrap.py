@@ -21,7 +21,7 @@ CLOUD_DEFAULTS = {
     "RERANKER_MODEL": "cohere/rerank-4-fast",
     "LANGSMITH_TRACING": "false",
     "CHROMA_PERSIST_DIRECTORY": "./chroma_db",
-    "COLLECTION_NAME": "pedir_demo_openai_embed_3small_v1",
+    "COLLECTION_NAME": "pedir_demo_openai_embed_3small_v2",
     "MAX_CHUNK_SIZE": "7500",
     "AGENT_MAX_ITERATIONS": "2",
     "TOP_K_RETRIEVAL": "4",
@@ -102,7 +102,11 @@ def apply_cloud_defaults() -> None:
         os.environ["OPENROUTER_EMBEDDING_MODEL"] = CLOUD_DEFAULTS["OPENROUTER_EMBEDDING_MODEL"]
 
     collection = os.environ.get("COLLECTION_NAME", "").strip()
-    if not collection or "nemotron_embed" in collection:
+    if (
+        not collection
+        or "nemotron_embed" in collection
+        or collection == "pedir_demo_openai_embed_3small_v1"
+    ):
         os.environ["COLLECTION_NAME"] = CLOUD_DEFAULTS["COLLECTION_NAME"]
 
     os.environ["USE_RERANKER"] = CLOUD_DEFAULTS["USE_RERANKER"]

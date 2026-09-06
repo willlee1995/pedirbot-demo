@@ -1,0 +1,26 @@
+Source: CIRSE patient information © Cardiovascular and Interventional Radiological Society of Europe
+
+## What is a gastrostomy?
+Gastrostomy is a procedure in which a gastrostomy tube is placed into your stomach for nutritional support. Gastrostomy may be recommended if for some reason you are unable to eat enough to sustain you, such as if you are unable to swallow safely.
+A gastrostomy tube is a tube which may resemble a catheter or a button (with a detachable extension). Both types of tube have a balloon on the tip which keeps them in the correct area and both are suitable for long-term use.
+## How does the procedure work?
+If you are on any anti-coagulation or anti-platelet medication (medication which prevents blood clotting), you will stop taking it before the procedure, if possible.
+You should not eat anything before the procedure. The interventional radiologist will insert a tube in your nose which will go into your stomach (called a nasogastric tube).
+A gastrostomy is usually performed under local anaesthesia or moderate sedation. You may be given antibiotics beforehand to prevent infection, but this is not always necessary. You will lie on a table designed to be used in imaging procedures.
+In most cases, you will be given a drug, that temporarily paralyses the muscles in your stomach. Then, air will be entered through the nasogastric tube and into your stomach. The interventional radiologist will perform a fluoroscopy of the stomach to determine the exact puncture site, which is usually over the middle part of the stomach. In some cases, such as if part of your colon or liver is in front of your stomach, the gastric procedure may be carried out using CT.
+The interventional radiologist will then perform a gastropexy, which is the fixation of the anterior gastric wall to the abdominal wall by means of several anchors (T-fasteners). Thereafter the stomach will be punctured with a small needle.
+The position of the needle tip within the stomach is confirmed using air or contrast media under imaging. The interventional radiologist will then position a guidewire through the needle and into your stomach, followed by a series of dilators which will be inserted over the guidewire to expand the area around it. The gastrostomy tube will then be inserted into your stomach. It has a balloon at the end which will be inflated to keep it in place and the guidewire will be safely removed. The interventional radiologist will inject a few millilitres of contrast media through the gastrostomy tube so that the position of the tube can be checked using fluoroscopy.
+You will probably be asked to stay in hospital overnight, though the procedure can in some cases be performed as an out-patient procedure. You may experience some discomfort around the catheter in the first few hours following the procedure.
+The entry point for the gastrostomy tube should be checked daily for signs of leakage or infection. You will be able to begin eating again few hours after the procedure. The gastropexy anchors can be safely removed 10-14 days after the procedure.
+The technical success rate of the gastrostomy procedure is very high, at around 97%.
+## Why perform it?
+As a general rule, enteral feeding (delivering food directly into the stomach) is recommended when a patient is unable to eat for at least 7-14 days. If you have been unable to eat normally for more than 30 days, you may be recommended to have a gastrostomy or a gastrojejunostomy tube placed.
+The most common reasons for being unable to eat are neurological causes that prevent normal swallowing (such as stroke or dementia), anatomical situations (such as during correction procedures of cleft lip and palate anomalies) and obstruction of the gullet (such as presence of head and neck tumours, post-radiation conditions). If you have a cancerous tumour in your bowel which causes a blockage, you may be recommended for a gastrostomy tube to decompress the stomach.
+## What are the risks?
+The most common complications include skin infection around the gastrostomy entry point and bruising. It is possible that the colon could be perforated during the placement of the tube, which can lead to severe peritonitis. If the gastrostomy tube is placed through the left hepatic lobe of your liver, you may experience bruising in your liver.
+As long as you are suitable for the procedure and the interventional radiologist chooses the technique most suited for you, the risk of complications is low (the rate of major complications is less than 3%).
+## Bibliography
+1. de Baere T, Chapot R, Kuoch V, et al. Percutaneous gastrostomy with fluoroscopic guidance: a single-centre experience in 500 consecutive cancer patients. Radiology 1999; 210(3):1076-83.
+2. Covarrubias DA, O’Connor OJ, McDermott S, Arellano RS. Radiologic percutaneous gastrostomy: review of potential complications and approach to managing the unexpected outcome. AJR Am J Roentgenol 2013; 200(4):921-31.
+3. Laasch HU, Martin DF. Radiologic gastrostomy. Endoscopy 2007; 39(3):247-55.
+4. Given MF, Hanson JJ, Lee MJ. Interventional radiology techniques for provision of enteral feeding. Cardiovasc Intervent Radiol 2005; 28(6):692-703.

@@ -1,0 +1,19 @@
+Source: CIRSE patient information © Cardiovascular and Interventional Radiological Society of Europe
+
+## What is an image-guided biopsy?
+An image-guided biopsy aims to provide diagnosis or assessment of treatment effect. The procedure is usually performed by an interventional radiologist. Under image navigation, a small piece of tissue is obtained from the body using special cutting needles. The tissue sample will usually be examined under a microscope by a pathologist and can also be analysed chemically. Genetic tests may also be performed on the tissue obtained.
+## How does the procedure work?
+The interventional radiologist may use a variety of imaging tools, including ultrasound, CT, MRI and/or fluoroscopy, to help place the needle precisely in the area that requires sampling. This depends on the location and nature of the lesion.
+Most biopsy procedures are performed under local anaesthesia or conscious sedation, so you will be awake but feel no pain. You may be asked to take antibiotics beforehand to reduce the risk of infection or stop certain blood thinning medications.. You will lie down for the procedure – the exact position you will be asked to lie in depends on the access route that the interventional radiologist will use to safely approach the lesion.
+The procedure will be carried out in a sterile and safe environment. The interventional radiologist will choose which type of needle to use according to the organ and tissue type which needs to be sampled, such as bone, soft tissue, lung, etc. The interventional radiologist will insert the needle and will guide it using imaging until the needle tip can be seen inside the lesion.
+An image-guided biopsy can be performed as an in-patient or out-patient procedure. The site of the puncture and your vital signs will be monitored for 4-6 hours following the procedure. You will experience some mild discomfort around the puncture site during this time. If you undergo a lung biopsy, you will be given a chest X-ray 6-8 hours after the procedure to ensure that no air has been trapped in the cavity between your chest wall and your lungs. In most cases, you will be allowed to drink water a few hours after the biopsy procedure.
+## Why perform it?
+If you have a lesion and your doctor needs further information to make a diagnosis, you may be referred for an image-guided biopsy.
+There are a number of factors which may make the procedure unsuitable for you, such as a blood clotting disorder or lack of safe route for the interventional radiologist to access the lesion.
+The success rate of the biopsy procedure can vary depending on the location of the lesion and the type of needle used. Image guidance is used to confirm that the needle is placed correctly inside the lesion and to help avoid complications. There is a chance that the biopsy procedure may have to be repeated if there is a problem with the tissue samples collected, such as too few samples being collected, or if the diagnosis is particularly complicated.
+## What are the risks?
+The risks depend on the needle size, location of the biopsy target and organ involved. There is a small chance of bleeding, which can be reduced by “plugging” the biopsy tract. If you have a lung biopsy there is risk of pneumothorax, which means that air fills the gap between the lungs and the chest wall. A small bore tube may need to be placed in the chest if the pneumothorax is causing breathing difficulty. Depending on the location of biopsy target, the needle may injure neighbouring organs such as bowel and vessels.
+## Bibliography
+1. Gupta S. Role of image-guided percutaneous needle biopsy in cancer staging. Seminars in Roentgenol 2006; 41(2): 78-90.
+2. Kerimaa P, Marttila A, Hyvönen P, et al. MRI-guided biopsy and fine needle aspiration biopsy (FNAB) in the diagnosis of musculoskeletal lesions. Eur J Radiol 2013.
+3. Klein JS, Zarka MA. Transthoracic needle biopsy: an overview. J Thorac Imaging 1997; 12(4):232-49.
