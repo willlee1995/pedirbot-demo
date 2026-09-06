@@ -729,14 +729,13 @@ def main():
     chat_disabled = bool(quota_error)
     render_sample_questions(disabled=chat_disabled)
 
-    prompt = st.session_state.pending_prompt
-    if prompt:
-        st.session_state.pending_prompt = None
-    else:
-        prompt = st.chat_input(
-            "Ask about interventional radiology procedures...",
-            disabled=chat_disabled,
-        )
+    # Always mount chat_input — skipping it on a chip click unmounts the box.
+    typed = st.chat_input(
+        "Ask about interventional radiology procedures...",
+        disabled=chat_disabled,
+    )
+    prompt = st.session_state.pending_prompt or typed
+    st.session_state.pending_prompt = None
 
     if prompt:
         blocked = check_demo_query(prompt, st.session_state.demo_queries_used)
