@@ -118,6 +118,56 @@ AA_INDEX_NOTE = (
     "are paid OpenRouter routes and are not ranked on that free-model list."
 )
 
+# Exact HAI-DEF §3.1.5 notice (MedGemma / Health AI Developer Foundations).
+HAI_DEF_NOTICE = (
+    "HAI-DEF is provided under and subject to the Health AI Developer "
+    "Foundations Terms of Use found at "
+    "https://developers.google.com/health-ai-developer-foundations/terms"
+)
+
+MODEL_LICENSE_NOTES = f"""
+**MedGemma 1.5** (Eval 2, local; not shipped here) is a Google Health AI
+Developer Foundations model. {HAI_DEF_NOTICE}
+
+HAI-DEF §3.2 use restrictions apply, including the
+[Prohibited Use Policy](https://developers.google.com/health-ai-developer-foundations/prohibited-use-policy).
+Do not use MedGemma for any purpose that could cause a Health Regulatory
+Authority to treat Google as a medical-device manufacturer, or that
+violates applicable law. Cite Sellergren et al. (2026), *MedGemma 1.5
+Technical Report*, [arXiv:2604.05081](https://arxiv.org/abs/2604.05081).
+
+**Gemma 4 31B** (this demo’s hosted MedGemma stand-in) is released under
+[Apache License 2.0](https://ai.google.dev/gemma/apache_2). See the
+[Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4).
+[Gemma prohibited-use policy](https://ai.google.dev/gemma/prohibited_use_policy).
+
+**Gemini 3 Flash Preview** (Eval 1 / demo default) is a Google API
+product, not an open-weight model. Use is subject to the
+[Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms)
+and [Google APIs Terms](https://developers.google.com/terms) (brand
+features and attribution, §6). Answers from this model are generated
+with Gemini. PedIR-Bot is not a Google product and is not endorsed by
+Google.
+
+Outputs are provided AS IS and are not medical advice. Full notices:
+`NOTICE`.
+"""
+
+
+def model_attribution_caption(model_id: str) -> str:
+    """User-facing license line for the selected chat model."""
+    if model_id.startswith("google/gemini"):
+        return (
+            "Generated with Gemini. PedIR-Bot is not a Google product "
+            "and is not endorsed by Google."
+        )
+    if "gemma" in model_id:
+        return (
+            "Gemma 4 under Apache 2.0. Hosted stand-in for MedGemma 1.5 "
+            "(HAI-DEF); this demo does not ship MedGemma weights."
+        )
+    return ""
+
 
 def is_paid_demo_model(model: object) -> bool:
     """True for paid catalog rows. Works if a stale Cloud class lacks `.paid`."""

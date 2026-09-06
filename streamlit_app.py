@@ -76,10 +76,12 @@ for _import_attempt in range(2):
         from src.conversation_memory import ConversationMemory
         from src.openrouter_demo_models import (
             AA_INDEX_NOTE,
+            MODEL_LICENSE_NOTES,
             OPENROUTER_DEMO_MODELS,
             default_demo_model_id,
             demo_model_label,
             get_demo_model,
+            model_attribution_caption,
         )
         from config import settings
         from src.source_allowlist import (
@@ -420,6 +422,9 @@ def render_model_picker() -> str:
                 f"{model.local_fit}"
             )
             st.caption(model.why)
+            attribution = model_attribution_caption(model.id)
+            if attribution:
+                st.caption(attribution)
             st.markdown(
                 f"[Model card]({model.aa_url}) · "
                 f"[{link_label}]({model.openrouter_url})"
@@ -446,6 +451,8 @@ Embeddings stay on the OpenRouter free embed slug (same API key).
                 """
             )
             st.caption(AA_INDEX_NOTE)
+        with st.expander("Model licenses"):
+            st.markdown(MODEL_LICENSE_NOTES)
         st.divider()
     return selected
 

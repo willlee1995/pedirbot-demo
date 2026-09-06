@@ -151,6 +151,7 @@ pedirbot-demo/
 │   ├── cloud_bootstrap.py    # Streamlit Cloud secrets, quotas, demo index
 │   └── openrouter_demo_models.py
 ├── demo_kb/                  # Overview + official HKCH IR Clinic leaflets (tagged HKCH)
+├── NOTICE                    # MedGemma HAI-DEF, Gemma 4, Gemini terms
 ├── requirements.txt          # Streamlit Cloud
 ├── runtime.txt               # Hint only — set Python in Streamlit Advanced settings
 └── .streamlit/secrets.toml.example
@@ -163,3 +164,15 @@ pedirbot-demo/
 Lee, C. W., et al. (2026). *Beyond information leaflets: Development of an interactive AI chatbot for patient and carer education in paediatric interventional radiology* [Conference oral]. CIRSE 2026 SPHAIRE, Copenhagen, Denmark.
 
 If you reuse the pattern at your own centre: name who updates the corpus, keep host-hospital sheets first, score the language your families actually speak, and do not turn parents loose on an unaudited graph.
+
+## Model licenses and acknowledgements
+
+This repo does not ship model weights. Naming Google models does not imply endorsement.
+
+**MedGemma 1.5** (Eval 2, local; not in this Cloud demo) is governed by the Health AI Developer Foundations Terms of Use. Required notice: HAI-DEF is provided under and subject to the Health AI Developer Foundations Terms of Use found at https://developers.google.com/health-ai-developer-foundations/terms. Section 3.2 use restrictions and the [Prohibited Use Policy](https://developers.google.com/health-ai-developer-foundations/prohibited-use-policy) apply. Cite Sellergren et al. (2026), *MedGemma 1.5 Technical Report*, [arXiv:2604.05081](https://arxiv.org/abs/2604.05081).
+
+**Gemma 4 31B** (hosted stand-in for MedGemma 1.5) is released under [Apache License 2.0](https://ai.google.dev/gemma/apache_2). See the [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4).
+
+**Gemini 3 Flash Preview** (Eval 1 / demo default) is a Google API product, not an open-weight model. Use is subject to the [Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms) and [Google APIs Terms](https://developers.google.com/terms) (brand features and attribution, §6). Answers from this model are generated with Gemini. PedIR-Bot is not a Google product.
+
+Full text is in [`NOTICE`](NOTICE). Outputs are AS IS and are not medical advice.

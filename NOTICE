@@ -1,0 +1,45 @@
+Third-party model notices
+=========================
+
+This project does not redistribute model weights. The bake-off and public
+demo call hosted or locally served models as described below. Use of those
+models is subject to their own terms. Naming a model here does not imply
+Google endorsement.
+
+MedGemma 1.5 (Eval 2; local / on-prem; not shipped in the public demo)
+---------------------------------------------------------------------
+HAI-DEF is provided under and subject to the Health AI Developer Foundations Terms of Use found at https://developers.google.com/health-ai-developer-foundations/terms
+
+Use restrictions in HAI-DEF section 3.2 apply, including the Prohibited Use
+Policy at
+https://developers.google.com/health-ai-developer-foundations/prohibited-use-policy
+HAI-DEF must not be used for any use that could cause a Health Regulatory
+Authority to deem Google a "manufacturer" of a medical device, or in
+violation of applicable laws.
+
+Citation: Sellergren et al. (2026). MedGemma 1.5 Technical Report.
+arXiv:2604.05081. https://arxiv.org/abs/2604.05081
+Model card:
+https://developers.google.com/health-ai-developer-foundations/medgemma/model-card
+
+Gemma 4 31B (public-demo hosted stand-in for MedGemma 1.5)
+---------------------------------------------------------
+Gemma 4 is provided under the Apache License 2.0
+(https://ai.google.dev/gemma/apache_2). See the Gemma 4 model card at
+https://ai.google.dev/gemma/docs/core/model_card_4
+Prohibited use: https://ai.google.dev/gemma/prohibited_use_policy
+Earlier Gemma terms (not Gemma 4): https://ai.google.dev/gemma/terms
+
+Gemini 3 Flash Preview (Eval 1; public-demo default)
+----------------------------------------------------
+Gemini is a Google API product, not an open-weight model. Use is subject
+to the Gemini API Additional Terms of Service
+(https://ai.google.dev/gemini-api/terms) and the Google APIs Terms of
+Service (https://developers.google.com/terms), including brand-feature
+and attribution rules in section 6.
+
+Answers generated with this model are produced with Gemini. PedIR-Bot is
+not a Google product and is not endorsed by Google.
+
+Generated output from any of the above models is provided AS IS and is
+not medical advice. This software is not a medical device.
