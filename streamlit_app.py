@@ -76,8 +76,11 @@ for _import_attempt in range(2):
         from src.conversation_memory import ConversationMemory
         from src.openrouter_demo_models import (
             AA_INDEX_NOTE,
+            KILO_DOCS_URL,
             MODEL_LICENSE_NOTES,
             OPENROUTER_DEMO_MODELS,
+            chat_gateway_for_model,
+            chat_gateway_label,
             default_demo_model_id,
             demo_model_label,
             get_demo_model,
@@ -355,9 +358,9 @@ def render_header():
     if is_cloud_demo():
         st.caption(
             "Cloud test: the same Agentic RAG graph as the local stack. "
-            "Chat defaults to paid **Gemini 3 Flash** (Eval 1); "
+            "Chat defaults to paid **Gemini 3 Flash** via Kilo (Eval 1); "
             "**Gemma 4 31B** (paid) stands in for MedGemma 1.5. "
-            "Embeddings stay on OpenRouter’s free embed slug."
+            "Embeddings stay on OpenRouter."
         )
 
 
@@ -391,7 +394,8 @@ def render_model_picker() -> str:
         st.caption(
             "Default is paid **Gemini 3 Flash** (Eval 1 bake-off model). "
             "**Gemma 4 31B** (paid) stands in for MedGemma 1.5 — no hosted API. "
-            "Free open-weight slugs remain as a hospital-GPU stand-in."
+            "Kilo-listed slugs go through Kilo Gateway; anything Kilo does not "
+            "carry stays on OpenRouter."
         )
         selected = st.selectbox(
             "Chat model",
@@ -408,14 +412,20 @@ def render_model_picker() -> str:
                 if getattr(model, "paid", None) is not None
                 else not str(getattr(model, "id", "")).endswith(":free")
             )
+            gateway = chat_gateway_label(model.id)
             score_line = (
-                f"Paid OpenRouter · {model.params}"
+                f"Paid {gateway} · {model.params}"
                 if model_is_paid
                 else f"AA Intelligence Index **{model.aa_index}** · {model.params}"
             )
-            link_label = (
-                "OpenRouter (paid)" if model_is_paid else "OpenRouter free endpoint"
-            )
+            if chat_gateway_for_model(model.id) == "kilo":
+                link_label = "Kilo Gateway"
+                gateway_url = KILO_DOCS_URL
+            else:
+                link_label = (
+                    "OpenRouter (paid)" if model_is_paid else "OpenRouter free endpoint"
+                )
+                gateway_url = model.openrouter_url
             st.markdown(
                 f"**{model.short_name}** ({model.lab})  \n"
                 f"{score_line}  \n"
@@ -427,7 +437,7 @@ def render_model_picker() -> str:
                 st.caption(attribution)
             st.markdown(
                 f"[Model card]({model.aa_url}) · "
-                f"[{link_label}]({model.openrouter_url})"
+                f"[{link_label}]({gateway_url})"
             )
         with st.expander("Why these models?"):
             st.markdown(
@@ -444,10 +454,10 @@ swaps only the LLM.
 | Local GPU stand-in (free) | Nemotron 3.5 Lightning (30B-A3B, AA 24) |
 | Open-weight ceiling (free) | Nemotron 3 Ultra (550B-A55B, AA 38) |
 
-Gemini is the default so the live demo uses the model we scored. Gemma 4
-uses the paid OpenRouter slug (not `:free`) so the queue stays available.
-Free open-weight slugs stay in the picker as a hospital-GPU stand-in.
-Embeddings stay on the OpenRouter free embed slug (same API key).
+Gemini is the default so the live demo uses the model we scored. Chat
+uses Kilo Gateway when that catalog lists the slug (same IDs as
+OpenRouter). Anything Kilo does not list stays on OpenRouter.
+Embeddings stay on OpenRouter.
                 """
             )
             st.caption(AA_INDEX_NOTE)
@@ -485,7 +495,7 @@ def render_sidebar(stats, chat_model: str):
             <strong>Documents:</strong> {stats['total_documents']}<br>
             <strong>Embedding:</strong> {settings.embedding_provider}
             ({settings.openrouter_embedding_model if settings.embedding_provider == "openrouter" else settings.openai_embedding_model})<br>
-            <strong>LLM:</strong> {settings.llm_provider}<br>
+            <strong>Chat gateway:</strong> {chat_gateway_label(chat_model)}<br>
             <strong>Chat model:</strong> {model_line}<br>
             <strong>Reranker:</strong> {reranker_status_label()}
         </div>

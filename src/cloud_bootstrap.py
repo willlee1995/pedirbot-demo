@@ -129,6 +129,8 @@ def missing_cloud_credentials() -> List[str]:
     needs_openrouter = embedding_provider == "openrouter" or llm_provider == "openrouter"
     if needs_openrouter and not os.environ.get("OPENROUTER_API_KEY", "").strip():
         missing.append("OPENROUTER_API_KEY")
+    if llm_provider == "openrouter" and not os.environ.get("KILO_API_KEY", "").strip():
+        missing.append("KILO_API_KEY")
     if llm_provider == "openai" and not os.environ.get("OPENAI_API_KEY", "").strip():
         missing.append("OPENAI_API_KEY")
     if llm_provider not in {"openai", "openrouter", "huggingface"}:

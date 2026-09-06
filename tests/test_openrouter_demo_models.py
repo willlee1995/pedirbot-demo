@@ -2,16 +2,16 @@
 from __future__ import annotations
 
 import unittest
-
 from types import SimpleNamespace
-
 from pathlib import Path
 
 from src.openrouter_demo_models import (
     DEFAULT_OPENROUTER_DEMO_MODEL_ID,
     HAI_DEF_NOTICE,
+    KILO_CHAT_MODEL_IDS,
     MODEL_LICENSE_NOTES,
     OPENROUTER_DEMO_MODELS,
+    chat_gateway_for_model,
     default_demo_model_id,
     get_demo_model,
     is_paid_demo_model,
@@ -77,6 +77,13 @@ class OpenRouterDemoModelsTest(unittest.TestCase):
         self.assertIn("Gemini", model_attribution_caption("google/gemini-3-flash-preview"))
         self.assertIn("HAI-DEF", model_attribution_caption("google/gemma-4-31b-it"))
         self.assertEqual(model_attribution_caption("qwen/qwen3.8-flash"), "")
+
+    def test_kilo_lists_current_picker_slugs(self):
+        ids = [model.id for model in OPENROUTER_DEMO_MODELS]
+        self.assertTrue(set(ids).issubset(KILO_CHAT_MODEL_IDS))
+        self.assertEqual(chat_gateway_for_model("google/gemini-3-flash-preview"), "kilo")
+        self.assertEqual(chat_gateway_for_model("google/gemma-4-31b-it"), "kilo")
+        self.assertEqual(chat_gateway_for_model("unknown/not-on-kilo"), "openrouter")
 
 
 if __name__ == "__main__":

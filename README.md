@@ -111,7 +111,8 @@ Streamlit Community Cloud reads a **public** GitHub repository. This repo is tha
 
 Required secrets:
 
-- `OPENROUTER_API_KEY` — paid chat, embeddings, and rerank
+- `KILO_API_KEY` — chat for slugs Kilo lists (Gemini 3 Flash, Gemma 4 31B, and the other picker models currently on Kilo)
+- `OPENROUTER_API_KEY` — embeddings, rerank, and any chat slug Kilo does not list
 
 Optional: `OPENAI_API_KEY` only if you set `EMBEDDING_PROVIDER = "openai"`. Also set `DEMO_ACCESS_CODE` and the three quota keys in the example file. Use `off` if you want the app open.
 

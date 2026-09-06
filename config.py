@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     openrouter_embedding_model: str = "openai/text-embedding-3-small"
     collection_name: str = "pedir_demo_openai_embed_3small_v1"
 
+    # Kilo Gateway (OpenAI-compatible). Same chat slugs as OpenRouter.
+    kilo_api_key: str = ""
+    kilo_api_base: str = "https://api.kilo.ai/api/gateway"
+
     # Hugging Face Inference Endpoint Configuration
     hf_api_key: str = ""
     hf_api_base: str = "https://rmebyko6uyhlruyu.us-east-1.aws.endpoints.huggingface.cloud/v1"

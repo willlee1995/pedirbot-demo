@@ -17,6 +17,43 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 from config import settings
+from src.openrouter_demo_models import chat_gateway_for_model
+
+
+def hosted_chat_endpoint(
+    model: str,
+    *,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+) -> tuple[str, str, dict]:
+    """Return (api_key, base_url, default_headers) for Streamlit hosted chat.
+
+    Kilo-listed slugs use KILO_API_KEY. Everything else stays on OpenRouter.
+    """
+    if chat_gateway_for_model(model) == "kilo":
+        kilo_key = (os.environ.get("KILO_API_KEY", "") or settings.kilo_api_key).strip()
+        if not kilo_key:
+            raise ValueError(
+                "No Kilo API key. In Streamlit Secrets set KILO_API_KEY "
+                "from https://kilo.ai (Kilo Gateway)."
+            )
+        return kilo_key, base_url or settings.kilo_api_base, {}
+
+    openrouter_key = (
+        api_key
+        or os.environ.get("OPENROUTER_API_KEY", "")
+        or settings.openrouter_api_key
+    ).strip()
+    if not openrouter_key:
+        raise ValueError(
+            "No OpenRouter API key. In Streamlit Secrets set OPENROUTER_API_KEY "
+            "to the full key from https://openrouter.ai/keys (starts with sk-or-v1-)."
+        )
+    return (
+        openrouter_key,
+        base_url or settings.openrouter_api_base,
+        {"HTTP-Referer": "https://pedir-bot.local", "X-Title": "PedIR Bot"},
+    )
 
 
 def get_langchain_llm(provider: str = None, **kwargs) -> BaseChatModel:
@@ -69,26 +106,22 @@ def get_langchain_llm(provider: str = None, **kwargs) -> BaseChatModel:
             streaming=kwargs.get('streaming', False),
         )
     elif provider == "openrouter":
-        # OpenRouter uses OpenAI-compatible API
-        openrouter_key = (
-            kwargs.get("api_key")
-            or os.environ.get("OPENROUTER_API_KEY", "")
-            or settings.openrouter_api_key
-        ).strip()
-        if not openrouter_key:
-            raise ValueError(
-                "No OpenRouter API key. In Streamlit Secrets set OPENROUTER_API_KEY "
-                "to the full key from https://openrouter.ai/keys (starts with sk-or-v1-)."
-            )
+        model = kwargs.get("model", settings.openrouter_chat_model)
+        api_key, resolved_base, headers = hosted_chat_endpoint(
+            model,
+            api_key=kwargs.get("api_key"),
+            base_url=kwargs.get("base_url"),
+        )
+        logger.info(f"Hosted chat via {chat_gateway_for_model(model)}: {model}")
         return ChatOpenAI(
-            model=kwargs.get('model', settings.openrouter_chat_model),
-            api_key=openrouter_key,
-            base_url=kwargs.get('base_url', settings.openrouter_api_base),
+            model=model,
+            api_key=api_key,
+            base_url=resolved_base,
             temperature=kwargs.get('temperature', settings.agent_temperature),
             max_tokens=kwargs.get('max_tokens', 4000),
             streaming=kwargs.get('streaming', False),
             request_timeout=kwargs.get('request_timeout', 90),
-            default_headers={"HTTP-Referer": "https://pedir-bot.local", "X-Title": "PedIR Bot"},
+            default_headers=headers,
         )
     elif provider == "huggingface":
         # Hugging Face Inference Endpoints (TGI) are often OpenAI-compatible
@@ -308,16 +341,21 @@ class OpenRouterProvider(LLMProvider):
         self.model = model or settings.openrouter_chat_model
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.base_url = base_url or settings.openrouter_api_base
-        self.api_key = settings.openrouter_api_key
+        self.api_key, self.base_url, headers = hosted_chat_endpoint(
+            self.model,
+            base_url=base_url,
+        )
 
         self.client = OpenAI(
             api_key=self.api_key,
             base_url=self.base_url,
-            default_headers={"HTTP-Referer": "https://pedir-bot.local", "X-Title": "PedIR Bot"}
+            default_headers=headers,
         )
 
-        logger.info(f"Initialized OpenRouter provider with model: {self.model}")
+        logger.info(
+            f"Initialized hosted chat ({chat_gateway_for_model(self.model)}) "
+            f"with model: {self.model}"
+        )
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def generate(self, messages: List[Dict[str, str]], **kwargs) -> str:

@@ -1,11 +1,27 @@
-"""OpenRouter chat models for the Streamlit Agentic RAG demo.
+"""Hosted chat models for the Streamlit Agentic RAG demo.
 
 Default is paid Gemini 3 Flash Preview — the Eval 1 bake-off model.
 Gemma 4 31B (paid, not :free) stands in for MedGemma 1.5 (no hosted API).
 Free open-weight slugs stay in the picker as a hospital-GPU stand-in.
+
+Chat prefers Kilo Gateway when the slug is on their list; otherwise OpenRouter.
+Embeddings stay on OpenRouter.
 """
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Literal, Optional
+
+# Same provider/model slugs as OpenRouter. Mastra's `kilo/` prefix is not sent.
+# Source: https://mastra.ai/models/providers/kilo and kilo.ai/docs/gateway
+# ponytail: static allowlist for the Streamlit picker; live GET /models if it grows.
+KILO_API_BASE = "https://api.kilo.ai/api/gateway"
+KILO_DOCS_URL = "https://kilo.ai/docs/gateway/models-and-providers"
+KILO_CHAT_MODEL_IDS = frozenset({
+    "google/gemini-3-flash-preview",
+    "google/gemma-4-31b-it",
+    "qwen/qwen3.8-flash",
+    "nvidia/nemotron-3.5-lightning:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+})
 
 
 @dataclass(frozen=True)
@@ -33,11 +49,11 @@ OPENROUTER_DEMO_MODELS: List[OpenRouterDemoModel] = [
         short_name="Gemini 3 Flash",
         lab="Google",
         aa_index=0,
-        params="Flash Preview (paid OpenRouter)",
+        params="Flash Preview (paid)",
         local_fit="Eval 1 bake-off model — the hosted model we scored",
         why=(
             "Same Gemini 3 Flash Preview used in the two-rater bake-off "
-            "(Eval 1). Paid OpenRouter route so generate does not sit in "
+            "(Eval 1). Paid Kilo Gateway route so generate does not sit in "
             "the :free queue."
         ),
         aa_url="https://openrouter.ai/google/gemini-3-flash-preview",
@@ -49,13 +65,13 @@ OPENROUTER_DEMO_MODELS: List[OpenRouterDemoModel] = [
         short_name="Gemma 4 31B",
         lab="Google DeepMind",
         aa_index=29,
-        params="30.7B dense (paid OpenRouter)",
+        params="30.7B dense (paid)",
         local_fit="MedGemma 1.5 stand-in — no hosted MedGemma API",
         why=(
             "Eval 2 used MedGemma 1.5 on-prem. There is no hosted MedGemma "
             "1.5 API, so this paid Gemma 4 31B slug is the closest Google "
-            "open-weight stand-in with a reliable OpenRouter queue (not the "
-            ":free variant)."
+            "open-weight stand-in (not the :free variant). Routed through "
+            "Kilo Gateway."
         ),
         aa_url="https://artificialanalysis.ai/models/gemma-4-31b",
         openrouter_url="https://openrouter.ai/google/gemma-4-31b-it",
@@ -66,12 +82,12 @@ OPENROUTER_DEMO_MODELS: List[OpenRouterDemoModel] = [
         short_name="Qwen 3.8 Flash",
         lab="Alibaba / Qwen",
         aa_index=0,
-        params="Flash (paid OpenRouter)",
+        params="Flash (paid)",
         local_fit="Paid low-latency alternative",
         why=(
-            "Paid OpenRouter route if you want a cheaper/faster generate "
-            "than Gemini on the same Agentic RAG graph. Embeddings stay on "
-            "the free OpenRouter embed slug."
+            "Paid Kilo route if you want a cheaper/faster generate than "
+            "Gemini on the same Agentic RAG graph. Embeddings stay on "
+            "OpenRouter."
         ),
         aa_url="https://openrouter.ai/qwen/qwen3.8-flash",
         openrouter_url="https://openrouter.ai/qwen/qwen3.8-flash",
@@ -115,7 +131,8 @@ AA_INDEX_NOTE = (
     "(agents, coding, knowledge, scientific reasoning), retrieved 25 Aug 2026. "
     "Index versions are rebased over time, so treat them as a ranking, not a "
     "clinical quality score. Gemini 3 Flash, Gemma 4 31B, and Qwen 3.8 Flash "
-    "are paid OpenRouter routes and are not ranked on that free-model list."
+    "are paid Kilo routes (same slugs as OpenRouter) and are not ranked on "
+    "that free-model list."
 )
 
 # Exact HAI-DEF §3.1.5 notice (MedGemma / Health AI Developer Foundations).
@@ -195,6 +212,18 @@ def default_demo_model_id(configured: str = "") -> str:
     ):
         return configured
     return DEFAULT_OPENROUTER_DEMO_MODEL_ID
+
+
+def chat_gateway_for_model(model_id: str) -> Literal["kilo", "openrouter"]:
+    """Kilo when that gateway lists the slug; OpenRouter otherwise."""
+    if model_id in KILO_CHAT_MODEL_IDS:
+        return "kilo"
+    return "openrouter"
+
+
+def chat_gateway_label(model_id: str) -> str:
+    """User-facing gateway name for the selected chat model."""
+    return "Kilo" if chat_gateway_for_model(model_id) == "kilo" else "OpenRouter"
 
 
 def demo_model_label(model_id: str) -> str:
