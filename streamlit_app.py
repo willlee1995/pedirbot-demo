@@ -359,9 +359,10 @@ def render_header():
         st.caption(
             "Cloud test: the same Agentic RAG graph as the local stack. "
             "Chat defaults to paid **Gemini 3 Flash** via Kilo (Eval 1); "
-            "**Gemma 4 31B** (paid) stands in for MedGemma 1.5. "
+            "**Gemma 4 26B A4B** (paid, 3.8B active) stands in for MedGemma 1.5 4B. "
             "Embeddings stay on OpenRouter."
         )
+    st.caption("Contact: [lcw112@ha.org.hk](mailto:lcw112@ha.org.hk)")
 
 
 def _configured_chat_model() -> str:
@@ -393,7 +394,7 @@ def render_model_picker() -> str:
         st.header("🧪 Test model")
         st.caption(
             "Default is paid **Gemini 3 Flash** (Eval 1 bake-off model). "
-            "**Gemma 4 31B** (paid) stands in for MedGemma 1.5 — no hosted API. "
+            "**Gemma 4 26B A4B** (paid, 3.8B active) stands in for MedGemma 1.5 4B — no hosted API. "
             "Kilo-listed slugs go through Kilo Gateway; anything Kilo does not "
             "carry stays on OpenRouter."
         )
@@ -449,7 +450,7 @@ swaps only the LLM.
 | Role | Model |
 | --- | --- |
 | Eval 1 bake-off (paid, default) | Gemini 3 Flash Preview |
-| Eval 2 stand-in (paid) | Gemma 4 31B — hosted alternative to MedGemma 1.5 (no public MedGemma API) |
+| Eval 2 stand-in (paid) | Gemma 4 26B A4B (3.8B active) — hosted 4B-class alternative to MedGemma 1.5 |
 | Paid low-latency | Qwen 3.8 Flash |
 | Local GPU stand-in (free) | Nemotron 3.5 Lightning (30B-A3B, AA 24) |
 | Open-weight ceiling (free) | Nemotron 3 Ultra (550B-A55B, AA 38) |
